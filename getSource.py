@@ -1,11 +1,9 @@
 # get_html_file
 import requests
 from retrying import retry
-import random
 
 
 def set_header():
-    user_agent =
     hdr = {'User-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0)'
            ' Gecko/20100101 Firefox/21.0',
            'Accept':  'text/html,application/xhtml+xml,application/xml;'

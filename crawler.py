@@ -1,7 +1,7 @@
 from getSource import get_html_text
+import requests
 import re
 import bs4
-from urlparse import urlparse
 from urlparse import urljoin
 from sets import Set
 
@@ -27,7 +27,7 @@ def add_links_to_queue(url):
                     result_file.write(str(link) + '\n')
                     visited.add(link)
 
-    except Exception as e:
+    except requests.RequestException as e:
         print str(e) + '\n'
         er_file.write(url + '\n')
         er_file.write(str(e) + '\n\n')
@@ -45,10 +45,10 @@ def bfs(level):
     bfs(level - 1)
 
 
-def bfs_level(root, level):
+def bfs_level(level):
     queue.append(base)
     visited.add(base)
     bfs(level)
 
 
-bfs_level(base, 4)
+bfs_level(4)
