@@ -1,5 +1,6 @@
 from getSource import get_html_text
-import re,bs4
+import re
+import bs4
 from urlparse import urlparse
 from urlparse import urljoin
 from sets import Set
@@ -8,38 +9,46 @@ visited = Set()
 queue = list()
 base = u"http://web.mit.edu"
 regex = r'^https?://([^.]*\.)?[^.]*\.mit\.edu[^.]*'
-pattern = re.compile(regex,re.UNICODE)  
+pattern = re.compile(regex, re.UNICODE)
+
+# opening a file
+result_file = open('result.txt', 'w')
+er_file = open('errors.txt', 'w')
 
 
 def add_links_to_queue(url):
-	try:
-		sp = bs4.BeautifulSoup(get_html_text(url),'lxml')
-		for tag in sp.find_all('a',href=True):
-			link = urljoin(base,tag['href'])
-			if(re.match(pattern,link) != None):
-				if link not in visited:
-					queue.append(link)
-					visited.add(link)
+    try:
+        sp = bs4.BeautifulSoup(get_html_text(url), 'lxml')
+        for tag in sp.find_all('a', href=True):
+            link = urljoin(base, tag['href'])
+            if re.match(pattern, link) is not None:
+                if link not in visited:
+                    queue.append(link)
+                    result_file.write(str(link) + '\n')
+                    visited.add(link)
 
-	except Exception as e:
-		print str(e)+'\n'				
+    except Exception as e:
+        print str(e) + '\n'
+        er_file.write(url + '\n')
+        er_file.write(str(e) + '\n\n')
+
 
 def bfs(level):
-	length = len(queue)
-	print "Length of queue: "+str(length)+" at level"+str(level)
-	if length < 0 or level <= 0:
-		return
-	for i in range(0,length):
-		queue[0]
-		add_links_to_queue(queue[0])
-		queue.pop(0)
-	bfs(level-1)	
+    length = len(queue)
+    print "Length of queue: " + str(length) + " at level" + str(level)
+    if length < 0 or level <= 0:
+        return
+    for i in range(0, length):
+        queue[0]
+        add_links_to_queue(queue[0])
+        queue.pop(0)
+    bfs(level - 1)
 
 
-def bfs_level(root,level):
-	queue.append(base)
-	visited.add(base)
-	bfs(level)
+def bfs_level(root, level):
+    queue.append(base)
+    visited.add(base)
+    bfs(level)
 
 
-bfs_level(base,4)
+bfs_level(base, 4)
