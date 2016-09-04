@@ -38,10 +38,11 @@ def bfs(level):
     print "Length of queue: " + str(length) + " at level" + str(level)
     if length < 0 or level <= 0:
         return
-    for i in range(0, length):
-        queue[0]
+    i = 0
+    while i < length:
         add_links_to_queue(queue[0])
         queue.pop(0)
+        i = i + 1
     bfs(level - 1)
 
 
