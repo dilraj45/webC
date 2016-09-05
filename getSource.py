@@ -13,6 +13,12 @@ def set_header():
            'Accept-Language': 'en-US,en;q=0.8'}
     return hdr
 
+
+@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+def wait_for_connection():
+    test = requests.get('http://216.58.197.46', timeout=2)
+    test.raise_for_status()
+    return
 # retry if HTTP error or connection error occurs
 # delay between consecutive retries is between 5 to 10 seconds
 
@@ -31,7 +37,11 @@ def get_html_text(url):
         else:
             htmlfile = requests.get(url, header=hdr, verify=False)
             htmlfile.raise_for_status()
-
+    except requests.exceptions.ConnectionError:
+        # checking for bad connection
+        print "No Internet Connection!"
+        wait_for_connection()
+        raise
     return htmlfile.text
 
 
@@ -49,6 +59,10 @@ def get_html_raw_response(url):
         else:
             htmlfile = requests.get(url, header=hdr, verify=False)
             htmlfile.raise_for_status()
+    except requests.exceptions.ConnectionError:
+        print "No Internet Connection!"
+        wait_for_connection()
+        raise
     return htmlfile.content
 
 
@@ -68,6 +82,10 @@ def get_html_text_with_params(url, payload):
         else:
             htmlfile = requests.get(url, header=hdr, verify=False)
             htmlfile.raise_for_status()
+    except requests.exceptions.ConnectionError:
+        print "No Internet Connection!"
+        wait_for_connection()
+        raise
     return htmlfile.text
 
 
@@ -85,4 +103,8 @@ def get_html_raw_response_with_params(url, payload):
         else:
             htmlfile = requests.get(url, header=hdr, verify=False)
             htmlfile.raise_for_status()
+    except requests.exceptions.ConnectionError:
+        print "No Internet Connection!"
+        wait_for_connection()
+        raise
     return htmlfile.content
