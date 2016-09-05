@@ -21,7 +21,17 @@ def set_header():
 def get_html_text(url):
     hdr = set_header()
     htmlfile = requests.get(url, headers=hdr)
-    htmlfile.raise_for_status()
+    try:
+        htmlfile.raise_for_status()
+    except requests.exceptions.SSLError:
+        # check for https
+        if url[4] == 's':
+            url = url[0:4] + url[5:]
+            raise
+        else:
+            htmlfile = requests.get(url, header=hdr, verify=False)
+            htmlfile.raise_for_status()
+
     return htmlfile.text
 
 
@@ -29,7 +39,16 @@ def get_html_text(url):
 def get_html_raw_response(url):
     hdr = set_header()
     htmlfile = requests.get(url, headers=hdr)
-    htmlfile.raise_for_status()
+    try:
+        htmlfile.raise_for_status()
+    except requests.exceptions.SSLError:
+        # check for https
+        if url[4] == 's':
+            url = url[0:4] + url[5:]
+            raise
+        else:
+            htmlfile = requests.get(url, header=hdr, verify=False)
+            htmlfile.raise_for_status()
     return htmlfile.content
 
 
@@ -39,7 +58,16 @@ def get_html_text_with_params(url, payload):
     # payloads is a dictionary comprising of key value pair
     hdr = set_header()
     htmlfile = requests.get(url, headers=hdr, params=payload)
-    htmlfile.raise_for_status()
+    try:
+        htmlfile.raise_for_status()
+    except requests.exceptions.SSLError:
+        # check for https
+        if url[4] == 's':
+            url = url[0:4] + url[5:]
+            raise
+        else:
+            htmlfile = requests.get(url, header=hdr, verify=False)
+            htmlfile.raise_for_status()
     return htmlfile.text
 
 
@@ -47,5 +75,14 @@ def get_html_text_with_params(url, payload):
 def get_html_raw_response_with_params(url, payload):
     hdr = set_header()
     htmlfile = requests.get(url, headers=hdr, params=payload)
-    htmlfile.raise_for_status()
+    try:
+        htmlfile.raise_for_status()
+    except requests.exceptions.SSLError:
+        # check for https
+        if url[4] == 's':
+            url = url[0:4] + url[5:]
+            raise
+        else:
+            htmlfile = requests.get(url, header=hdr, verify=False)
+            htmlfile.raise_for_status()
     return htmlfile.content
