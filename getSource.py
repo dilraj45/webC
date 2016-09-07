@@ -46,7 +46,7 @@ def get_html_text(url):
 
 
 @retry(stop_max_attempt_number=5, wait_random_min=5000, wait_random_max=10000)
-def get_html_raw_response(url):
+def get_html_binary_response(url):
     hdr = set_header()
     try:
         htmlfile = requests.get(url, headers=hdr)
@@ -90,7 +90,7 @@ def get_html_text_with_params(url, payload):
 
 
 @retry(stop_max_attempt_number=5, wait_random_min=5000, wait_random_max=10000)
-def get_html_raw_response_with_params(url, payload):
+def get_html_binary_response_with_params(url, payload):
     hdr = set_header()
     try:
         htmlfile = requests.get(url, headers=hdr, params=payload)
