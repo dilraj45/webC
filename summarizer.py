@@ -19,6 +19,7 @@ def create_summary(src_content):
 
     for anchor_tag in soup.find_all('a', href=True):
 
+        print anchor_tag['href']
         # adding the anchor text to summary
         anchor_string = anchor_tag.string
         if anchor_string is not None:
@@ -68,11 +69,12 @@ def create_summary(src_content):
             heading_tag = heading_tag.parent
 
         # Adding the title text to summary
-        # if title_string is not None and title_string != "":
-        #     summary = summary + " " + title_string
+        if title_string is not None and title_string != "":
+            summary = summary + " " + title_string
+
         print summary
         # Indexing the summary of link
         # Index_summary(summary, anchor_tag['href'])
         summary = ""
-htmlfile = requests.get("http://web.mit.edu")
+htmlfile = requests.get("http://www-cs.stanford.edu/")
 create_summary(htmlfile.content)
