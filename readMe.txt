@@ -1,2 +1,1 @@
-This is a python based focused crawler ....
-
+This is a python based web crawler
