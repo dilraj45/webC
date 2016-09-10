@@ -1,6 +1,14 @@
-# get_html_file
-import requests
+"""This is module for fetching the source code of a page when provided
+   with a url, this module uses request module. Using this module you
+   can get the html text of page or binary response depending upon
+   your requirements. This module also keep track of the url of page you
+   are accessing, (this can be used to check any redirection) which can
+   accessed by calling get_base_url or get_base_hostname method. This
+   module handles exceptions thrown by request module and comes with
+   stand by support mechanisim in case of network failure"""
+
 from urlparse import urlparse
+import requests
 from retrying import retry
 
 
@@ -104,7 +112,7 @@ class getSource:
 
     @retry(stop_max_attempt_number=5, wait_random_min=5000,
            wait_random_max=10000)
-    def get_html_binary_response_with_params(self, url, payload):
+    def get_html_binary_with_params(self, url, payload):
         hdr = self.set_header()
         try:
             htmlfile = requests.get(url, headers=hdr, params=payload)
