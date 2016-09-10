@@ -1,2 +1,1 @@
-This is THE FUDUEST  python based focused crawler YOU WILL EVER SEE IN YOUR LIFE....
-
+This is a python based web crawler
