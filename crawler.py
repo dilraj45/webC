@@ -42,7 +42,7 @@ def add_links_to_queue(url):
 def bfs(level):
     length = len(queue)
     print "Length of queue: " + str(length) + " at level " + str(level)
-    if length < 0 or level <= 0:
+    if length <= 0 or level <= 0:
         return
     i = 0
     while i < length:
