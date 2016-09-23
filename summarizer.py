@@ -15,7 +15,8 @@ def create_summary(src_content):
     # Obtaining the title string of page
     title_string = soup.title.string
     if title_string is not None:
-        title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'', title_string.encode('utf-8'))
+        title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
+                              title_string.encode('utf-8'))
 
     for anchor_tag in soup.find_all('a', href=True):
 
