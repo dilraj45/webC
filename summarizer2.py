@@ -87,7 +87,7 @@ class summary_generator:
         while len(self.queue) > 0:
             self.bfs()
 
-    def get_summary(self, src_content):
+    def get_and_index_summary(self, src_content):
         """This function create a summary document for each
         link present on the page and create a posting list which
         is stored in the directory Postings
@@ -104,4 +104,4 @@ class summary_generator:
 htmlfile = requests.get('http://web.mit.edu')
 htmlfile.raise_for_status()
 obj = summary_generator()
-print obj.get_summary(htmlfile.text)
+print obj.get_and_index_summary(htmlfile.text)
