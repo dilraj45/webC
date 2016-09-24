@@ -3,7 +3,7 @@ import re
 import requests
 
 
-def create_summary(src_content):
+def create_and_index_summary(src_content):
     """This function create a summary document for each
     link present on the page and create a posting list which
     is stored in the directory Postings
@@ -78,4 +78,4 @@ def create_summary(src_content):
         # Index_summary(summary, anchor_tag['href'])
         summary = ""
 htmlfile = requests.get("http://www-cs.stanford.edu/")
-create_summary(htmlfile.content)
+create_and_index_summary(htmlfile.content)
