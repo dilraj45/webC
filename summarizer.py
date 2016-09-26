@@ -12,11 +12,13 @@ class summarizer:
         self.client = MongoClient('localhost', 27017)
         self.db = self.client['test_project']
         self.col = self.db['summary']
+        self.cur_id = -1
+        self.keyword_list = open("stems.txt", "r").read().split('\n')
         # fetching the mapping list from database
         doc = self.col.find_one({"_id": "hashmap"})
         self.hash = doc['hash']
 
-    def add_to_db_posting(word, tf):
+    def add_to_db_posting(self, word, tf):
         # adding the new entry to 'word' posting list
         # fetching the already existing posting list
         doc = self.col.find_one({"_id": word})
@@ -28,17 +30,17 @@ class summarizer:
         l.insert(index, [self.cur_id, tf])
 
         # updating the list in database
-        ksdlfkjlsdkf
+        self.col.update({"_id": word},
+                        {"postings": l})
 
     def index_summary(self, url, summary):
-        self.cur_id = -1
         # assigning a unique id to every url
         try:
             self.cur_id = self.hash[url]
         except KeyError:
             # generate new id for
             self.cur_id = len(self.hash) + 1
-            self.hash[url] = cur_id
+            self.hash[url] = self.cur_id
             # updating the same in database
             self.col.update({
                 {"_id": "hashmap"},
@@ -52,7 +54,7 @@ class summarizer:
             word_stems.append(stem(word))
         keys_dic = {}
         for word in word_stems:
-            if word not in keyword_list:  # can use local list or can use databse for fetching the keyword list
+            if word not in self.keyword_list:
                 continue
             if word in keys_dic:
                 keys_dic[word] = keys_dic[word] + 1
@@ -60,7 +62,7 @@ class summarizer:
                 keys_dic[word] = 1
         # convering the dictionary to key, value pairs stored in a list
         for word in keys_dic:
-            add_to_db_posting(word, keys_dic[word])
+            self.add_to_db_posting(word, keys_dic[word])
 
     def create_and_index_summary(self, src_content):
         """This function create a summary document for each
