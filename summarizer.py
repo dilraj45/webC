@@ -1,81 +1,149 @@
 from bs4 import BeautifulSoup
 import re
 import requests
+from pymongo import MongoClient
+from stemming.porter2 import stem
 
 
-def create_and_index_summary(src_content):
-    """This function create a summary document for each
-    link present on the page and create a posting list which
-    is stored in the directory Postings
+class summarizer:
 
-    Posting list will be created for each link in anchor tag"""
+    def __init__(self):
+        # establishing connection with the mongodb datbase
+        self.client = MongoClient('localhost', 27017)
+        self.db = self.client['test_project']
+        self.col = self.db['summary']
+        # fetching the mapping list from database
+        doc = self.col.find_one({"_id": "hashmap"})
+        self.hash = doc['hash']
 
-    # creating a soup object from requests object
-    soup = BeautifulSoup(src_content, 'lxml')
-    # Obtaining the title string of page
-    title_string = soup.title.string
-    if title_string is not None:
-        title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                              title_string.encode('utf-8'))
+    def add_to_db_posting(word, tf):
+        # adding the new entry to 'word' posting list
+        # fetching the already existing posting list
+        doc = self.col.find_one({"_id": word})
+        l = doc['postings']
+        # adding the new value at coorect position in the list
+        index = 0
+        while index < len(l) and tf <= l[index][1]:
+            index = index + 1
+        l.insert(index, [self.cur_id, tf])
 
-    for anchor_tag in soup.find_all('a', href=True):
+        # updating the list in database
+        ksdlfkjlsdkf
 
-        print anchor_tag['href']
-        # adding the anchor text to summary
-        anchor_string = anchor_tag.string
-        if anchor_string is not None:
-            summary = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                             anchor_string.encode('utf-8'))
+    def index_summary(self, url, summary):
+        self.cur_id = -1
+        # assigning a unique id to every url
+        try:
+            self.cur_id = self.hash[url]
+        except KeyError:
+            # generate new id for
+            self.cur_id = len(self.hash) + 1
+            self.hash[url] = cur_id
+            # updating the same in database
+            self.col.update({
+                {"_id": "hashmap"},
+                {"total_url": len(self.hash),
+                 "hash": self.hash}
+            })
+        # Indexing the summary
+        # Stemming of the summary
+        word_stems = []
+        for word in summary.lower().split():
+            word_stems.append(stem(word))
+        keys_dic = {}
+        for word in word_stems:
+            if word not in keyword_list:  # can use local list or can use databse for fetching the keyword list
+                continue
+            if word in keys_dic:
+                keys_dic[word] = keys_dic[word] + 1
+            else:
+                keys_dic[word] = 1
+        # convering the dictionary to key, value pairs stored in a list
+        for word in keys_dic:
+            add_to_db_posting(word, keys_dic[word])
 
-        # adding the text of previous and next siblings to tags to summary
-        n_sibling = anchor_tag.next_sibling
-        while n_sibling is not None:
-            # n_sibling.string can be None for DEBUGGING
-            sib_string = n_sibling.string
-            if sib_string is not None:
-                sib_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                                    sib_string.encode('utf-8'))
-                if sib_string != "":
-                    summary = summary + " " + sib_string
-                    break
-            n_sibling = n_sibling.next_sibling
+    def create_and_index_summary(self, src_content):
+        """This function create a summary document for each
+        link present on the page and create a posting list which
+        is stored in the directory Postings
 
-        p_sibling = anchor_tag.previous_sibling
-        while p_sibling is not None:
-            sib_string = p_sibling.string
-            if sib_string is not None:
-                sib_string = re.sub(r'[^a-zA-Z0-9@ ]',
-                                    r'', sib_string.encode('utf-8'))
-                if sib_string != "":
-                    summary = summary + " " + sib_string
-                    break
-            p_sibling = p_sibling.previous_sibling
+        Posting list will be created for each link in anchor tag"""
 
-        # Adding the content of heading tag that appears just above the given
-        # tag in the parse tree
-        # regular expression for heading tags
-        regex = r'h[0-9]'
-        pattern = re.compile(regex)
-        heading_tag = anchor_tag.parent
-        while heading_tag is not None:
-            if re.match(pattern, heading_tag.name.encode('utf-8')) is not None:
-                heading_string = heading_tag.string
-                if heading_string is not None:
-                    heading_string = re.sub(
-                        r'[^a-zA-Z0-9@  ]', r'',
-                        heading_string.encode('utf-8'))
-                    if heading_string != "":
-                        summary = summary + " " + heading_string
+        # creating a soup object from requests object
+        soup = BeautifulSoup(src_content, 'lxml')
+        # Obtaining the title string of page
+        title_string = soup.title.string
+        if title_string is not None:
+            title_string = re.sub(r'@', r' @ ', title_string)
+            title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
+                                  title_string.encode('utf-8'))
+
+        for anchor_tag in soup.find_all('a', href=True):
+
+            # adding the anchor text to summary
+            anchor_string = anchor_tag.string
+            if anchor_string is not None:
+                summary = re.sub(r'@', r' @ ', anchor_string.encode('utf -8'))
+                summary = re.sub(r'[^a-zA-Z0-9@ ]', r'',
+                                 summary)
+
+            # adding the text of previous and next siblings to tags to summary
+            n_sibling = anchor_tag.next_sibling
+            while n_sibling is not None:
+                # n_sibling.string can be None for DEBUGGING
+                sib_string = n_sibling.string
+                if sib_string is not None:
+                    sib_string = re.sub(
+                        r'@', r' @ ', sib_string.encode('utf-8'))
+                    sib_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
+                                        sib_string)
+                    if sib_string != "":
+                        summary = summary + " " + sib_string
                         break
-            heading_tag = heading_tag.parent
+                n_sibling = n_sibling.next_sibling
 
-        # Adding the title text to summary
-        if title_string is not None and title_string != "":
-            summary = summary + " " + title_string
+            p_sibling = anchor_tag.previous_sibling
+            while p_sibling is not None:
+                sib_string = p_sibling.string
+                if sib_string is not None:
+                    sib_string = re.sub(
+                        r'@', r' @ ', sib_string.encode('utf-8'))
+                    sib_string = re.sub(r'[^a-zA-Z0-9@ ]',
+                                        r'', sib_string)
+                    if sib_string != "":
+                        summary = summary + " " + sib_string
+                        break
+                p_sibling = p_sibling.previous_sibling
 
-        print summary
-        # Indexing the summary of link
-        # Index_summary(summary, anchor_tag['href'])
-        summary = ""
+            # Adding the content of heading tag that appears just above
+            # the given tag in the parse tree
+            # regular expression for heading tags
+            regex = r'h[0-9]'
+            pattern = re.compile(regex)
+            heading_tag = anchor_tag.parent
+            while heading_tag is not None:
+                if re.match(pattern,
+                            heading_tag.name.encode('utf-8')) is not None:
+                    heading_string = heading_tag.string
+                    if heading_string is not None:
+                        heading_string = re.sub(
+                            r'@', r' @ ', heading_string.encode('utf-8'))
+                        heading_string = re.sub(
+                            r'[^a-zA-Z0-9@  ]', r'',
+                            heading_string)
+                        if heading_string != "":
+                            summary = summary + " " + heading_string
+                            break
+                heading_tag = heading_tag.parent
+
+            # Adding the title text to summary
+            if title_string is not None and title_string != "":
+                summary = summary + " " + title_string
+
+            self.index_summary(anchor_tag['href'], summary)
+            # Indexing the summary of link
+            # Index_summary(summary, anchor_tag['href'])
+            summary = ""
+obj = summarizer()
 htmlfile = requests.get("http://www-cs.stanford.edu/")
-create_and_index_summary(htmlfile.content)
+obj.create_and_index_summary(htmlfile.text)
