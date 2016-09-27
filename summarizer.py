@@ -146,6 +146,7 @@ class summarizer:
             # Indexing the summary of link
             # Index_summary(summary, anchor_tag['href'])
             summary = ""
-obj = summarizer()
-htmlfile = requests.get("http://www-cs.stanford.edu/")
-obj.create_and_index_summary(htmlfile.text)
+if __name__ == '__main__':
+    obj = summarizer()
+    htmlfile = requests.get("http://www-cs.stanford.edu/")
+    obj.create_and_index_summary(htmlfile.text)
