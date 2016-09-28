@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from stemming.porter2 import stem
-from get_individual_tags_text import*
+from get_text_from_tag_for_url import get_individual_tags_text
 
 
 class on_page_summarizer:
@@ -16,17 +16,21 @@ class on_page_summarizer:
         # for getting text of a given url
         self.get_obj = get_individual_tags_text()
 
-        for keyword in self.fp:
+        # for keyword in self.fp:
             # here collections are made automatically here
-            self.creating_documents_for_every_word(keyword)
+            # print keyword
+            #self.creating_documents_for_every_word(keyword)
             # 1st attribute is for word's id and 2nd for posting list
 
     def creating_documents_for_every_word(self, keyword):
         # using keywor das our id
         # for every keywor dwe need to store a opsting list
-        self.db[keyword].insert(
-            {"_id": keyword + "title", "postings": []})  # [] null list
-        self.db[keyword].insert({"_id": keyword + "meta", "posting": []})
+        try:
+            self.db[keyword].insert(
+             {"_id": keyword + "title", "postings": []})  # [] null list
+            self.db[keyword].insert({"_id": keyword + "meta", "posting": []})
+        except Exception as e:
+            print e    
         # for finding a document with a given id
         # doc = self.db[keyword].find_one({"_id": "title"})
 
@@ -35,8 +39,13 @@ class on_page_summarizer:
         #     {"postings": new_list})
 
     def get_dict_words(self, on_page_summary_for_given_tag):
+        print on_page_summary_for_given_tag
         word_stems = []
-        for word in on_page_summary_for_given_tag.lower().split():
+        try:
+            stemmed_words_list = on_page_summary_for_given_tag.lower().split()
+        except Exception as e:
+            print e
+        for word in stemmed_words_list:
             word_stems.append(stem(word))
         key_dic = {}
         for word in word_stems:
@@ -57,7 +66,9 @@ class on_page_summarizer:
         )
 
     def for_title(self):
+
         title_text = self.get_obj.get_title_text()
+        print "fudu"+title_text
         # convering the dictionary to key, value pairs stored in a list
         key_dic = {}
         key_dic = self.get_dict_words(title_text)
@@ -71,7 +82,7 @@ class on_page_summarizer:
         key_dic = obj.get_dict_words(meta_text)
         # convering the dictionary to key, value pairs stored in a list
         for word in key_dic:
-            self.add_to_db_posting(word, key_dic[word], "meta", id_U`RL)
+            self.add_to_db_posting(word, key_dic[word], "meta", id_URL)
 
     def index_on_page_summary(self):
         # for every tag
