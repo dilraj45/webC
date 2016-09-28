@@ -15,8 +15,8 @@ pattern = re.compile(regex, re.UNICODE)
 
 # opening file one for storing the resultant url and one
 # for holding errors and exceptions
-result_file = open('result.txt', 'w')
-er_file = open('errors.txt', 'w')
+result_file = open('result.txt', 'w+')
+er_file = open('errors.txt', 'w+')
 
 
 def add_links_to_queue(url):
