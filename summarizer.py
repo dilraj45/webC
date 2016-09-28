@@ -36,13 +36,12 @@ class summarizer:
 
     def index_summary(self, url, summary):
         # assigning a unique id to every url
-        try:
-            temp = re.sub(r'\.', r';', url)
+        temp = re.sub(r'\.', r';', url)
+        if temp in self._hash:
             self.cur_id = self._hash[temp]
-        except KeyError:
+        else:
             # generate new id for
             self.cur_id = len(self._hash) + 1
-            temp = re.sub(r'\.', r';', url)
             self._hash[temp] = self.cur_id
             # updating the same in database
             self.col.update({"_id": "_hahmap"},
@@ -81,7 +80,7 @@ class summarizer:
             if title_string is not None:
                 title_string = re.sub(r'@', r' @ ', title_string)
                 title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                                      title_string.encode('utf-8'))
+                                      title_string.encode('utf-8').lower())
 
         for anchor_tag in soup.find_all('a', href=True):
 
@@ -91,7 +90,7 @@ class summarizer:
             if anchor_string is not None:
                 summary = re.sub(r'@', r' @ ', anchor_string.encode('utf -8'))
                 summary = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                                 summary)
+                                 summary.lower())
 
             # adding the text of previous and next siblings to tags to summary
             n_sibling = anchor_tag.next_sibling
@@ -102,7 +101,7 @@ class summarizer:
                     sib_string = re.sub(
                         r'@', r' @ ', sib_string.encode('utf-8'))
                     sib_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                                        sib_string)
+                                        sib_string.lower())
                     if sib_string != "":
                         summary = summary + " " + sib_string
                         break
@@ -115,7 +114,7 @@ class summarizer:
                     sib_string = re.sub(
                         r'@', r' @ ', sib_string.encode('utf-8'))
                     sib_string = re.sub(r'[^a-zA-Z0-9@ ]',
-                                        r'', sib_string)
+                                        r'', sib_string.lower())
                     if sib_string != "":
                         summary = summary + " " + sib_string
                         break
@@ -136,7 +135,7 @@ class summarizer:
                             r'@', r' @ ', heading_string.encode('utf-8'))
                         heading_string = re.sub(
                             r'[^a-zA-Z0-9@  ]', r'',
-                            heading_string)
+                            heading_string.lower())
                         if heading_string != "":
                             summary = summary + " " + heading_string
                             break
