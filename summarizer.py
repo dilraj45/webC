@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import re
-import requests
 from pymongo import MongoClient
 from stemming.porter2 import stem
+from urlparse import urljoin
 
 
 class summarizer:
@@ -65,7 +65,7 @@ class summarizer:
         for word in keys_dic:
             self.add_to_db_posting(word, keys_dic[word])
 
-    def create_and_index_summary(self, src_content):
+    def create_and_index_summary(self, base_host, src_content):
         """This function create a summary document for each
         link present on the page and create a posting list which
         is stored in the directory Postings
@@ -75,16 +75,19 @@ class summarizer:
         # creating a soup object from requests object
         soup = BeautifulSoup(src_content, 'lxml')
         # Obtaining the title string of page
-        title_string = soup.title.string
-        if title_string is not None:
-            title_string = re.sub(r'@', r' @ ', title_string)
-            title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
-                                  title_string.encode('utf-8'))
+        title_string = ""
+        if soup.title is not None:
+            title_string = soup.title.string
+            if title_string is not None:
+                title_string = re.sub(r'@', r' @ ', title_string)
+                title_string = re.sub(r'[^a-zA-Z0-9@ ]', r'',
+                                      title_string.encode('utf-8'))
 
         for anchor_tag in soup.find_all('a', href=True):
 
             # adding the anchor text to summary
             anchor_string = anchor_tag.string
+            summary = ""
             if anchor_string is not None:
                 summary = re.sub(r'@', r' @ ', anchor_string.encode('utf -8'))
                 summary = re.sub(r'[^a-zA-Z0-9@ ]', r'',
@@ -142,12 +145,10 @@ class summarizer:
             # Adding the title text to summary
             if title_string is not None and title_string != "":
                 summary = summary + " " + title_string
-
-            self.index_summary(anchor_tag['href'], summary)
+            temp_url = urljoin("http://" + base_host, anchor_tag['href'])
+            self.index_summary(temp_url, summary)
             # Indexing the summary of link
             # Index_summary(summary, anchor_tag['href'])
             summary = ""
 if __name__ == '__main__':
     obj = summarizer()
-    htmlfile = requests.get("http://www-cs.stanford.edu/")
-    obj.create_and_index_summary(htmlfile.text)
