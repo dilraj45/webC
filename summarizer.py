@@ -44,7 +44,7 @@ class summarizer:
             self.cur_id = len(self._hash) + 1
             self._hash[temp] = self.cur_id
             # updating the same in database
-            self.col.update({"_id": "_hahmap"},
+            self.col.update({"_id": "_hashmap"},
                             {"mapping": self._hash})
 
         # Indexing the summary
@@ -72,6 +72,8 @@ class summarizer:
         Posting list will be created for each link in anchor tag"""
 
         # creating a soup object from requests object
+        if src_content is None:
+            return
         soup = BeautifulSoup(src_content, 'lxml')
         # Obtaining the title string of page
         title_string = ""
