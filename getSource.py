@@ -45,24 +45,24 @@ class getSource:
            wait_random_max=10000)
     def get_html_text(self, url):
         hdr = self.set_header()
+        htmlfile = None
         try:
             htmlfile = requests.get(url, headers=hdr)
             self.base_url = htmlfile.url
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
-            if url[4] == 's':
-                url = url[0:4] + url[5:]
-                raise
-            else:
-                htmlfile = requests.get(url, header=hdr, verify=False)
-                htmlfile.raise_for_status()
+            # openSSL can be used to bypass the SSL layer
+            print "SSLError exception caught"
         except requests.exceptions.ConnectionError:
             # checking for bad connection
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
             raise
-        return htmlfile.text
+        if htmlfile is not None:
+            return htmlfile.text
+        else:
+            return None
 
     @retry(stop_max_attempt_number=5, wait_random_min=5000,
            wait_random_max=10000)
@@ -74,12 +74,8 @@ class getSource:
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
-            if url[4] == 's':
-                url = url[0:4] + url[5:]
-                raise
-            else:
-                htmlfile = requests.get(url, header=hdr, verify=False)
-                htmlfile.raise_for_status()
+            # openSSL can be used to deal with SSL Error
+            print "SSLError exception caught"
         except requests.exceptions.ConnectionError:
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
@@ -98,12 +94,7 @@ class getSource:
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
-            if url[4] == 's':
-                url = url[0:4] + url[5:]
-                raise
-            else:
-                htmlfile = requests.get(url, header=hdr, verify=False)
-                htmlfile.raise_for_status()
+            print "SSLError exception caught"
         except requests.exceptions.ConnectionError:
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
@@ -120,12 +111,7 @@ class getSource:
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
-            if url[4] == 's':
-                url = url[0:4] + url[5:]
-                raise
-            else:
-                htmlfile = requests.get(url, header=hdr, verify=False)
-                htmlfile.raise_for_status()
+            print "SSLError exception caught"
         except requests.exceptions.ConnectionError:
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
