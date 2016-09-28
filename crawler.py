@@ -21,7 +21,10 @@ er_file = open('errors.txt', 'w+')
 
 def add_links_to_queue(url):
     try:
-        sp = bs4.BeautifulSoup(req_obj.get_html_text(url), 'lxml')
+        ht_text = req_obj.get_html_text(url)
+        if ht_text is None:
+            return
+        sp = bs4.BeautifulSoup(ht_text, 'lxml')
         for tag in sp.find_all('a', href=True):
             base = 'http://' + req_obj.get_base_hostname()
             link = urljoin(base, tag['href'])
@@ -31,7 +34,7 @@ def add_links_to_queue(url):
                     result_file.write((link).encode('utf-8') + '\n')
                     visited.add(link)
 
-    except requests.RequestException as trace:
+    except (requests.RequestException, requests.exceptions.SSLError)as trace:
         print str(trace) + '\n'
         er_file.write(url + '\n')
         er_file.write(str(trace) + '\n\n')
@@ -45,8 +48,13 @@ def bfs(level):
     i = 0
     while i < length:
         add_links_to_queue(queue[0])
-        sum_obj.create_and_index_summary(
-            req_obj.get_base_hostname(), req_obj.get_html_text(queue[0]))
+        try:
+            sum_obj.create_and_index_summary(
+                req_obj.get_base_hostname(), req_obj.get_html_text(queue[0]))
+        except requests.RequestException as trace:
+            print str(trace) + '\n'
+            er_file.write(queue[0] + '\n')
+            er_file.write(str(trace) + '\n\n')
         queue.pop(0)
         i = i + 1
     bfs(level - 1)
