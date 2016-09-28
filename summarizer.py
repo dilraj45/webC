@@ -11,12 +11,13 @@ class summarizer:
         # establishing connection with the mongodb datbase
         self.client = MongoClient('localhost', 27017)
         self.db = self.client['test_project']
-        self.col = self.db['summary']
+        self.col = self.db.summary
         self.cur_id = -1
         self.keyword_list = open("stems.txt", "r").read().split('\n')
         # fetching the mapping list from database
-        doc = self.col.find_one({"_id": "hashmap"})
-        self.hash = doc['hash']
+        doc = self.col.find_one({"_id": "_hashmap"})
+        self._hash = {}
+        self._hash = doc['mapping']
 
     def add_to_db_posting(self, word, tf):
         # adding the new entry to 'word' posting list
@@ -36,17 +37,17 @@ class summarizer:
     def index_summary(self, url, summary):
         # assigning a unique id to every url
         try:
-            self.cur_id = self.hash[url]
+            temp = re.sub(r'.', r';', url)
+            self.cur_id = self._hash[temp]
         except KeyError:
             # generate new id for
-            self.cur_id = len(self.hash) + 1
-            self.hash[url] = self.cur_id
+            self.cur_id = len(self._hash) + 1
+            temp = re.sub(r'\.', r';', url)
+            self._hash[temp] = self.cur_id
             # updating the same in database
-            self.col.update({
-                {"_id": "hashmap"},
-                {"total_url": len(self.hash),
-                 "hash": self.hash}
-            })
+            self.col.update({"_id": "_hahmap"},
+                            {"mapping": self._hash})
+
         # Indexing the summary
         # Stemming of the summary
         word_stems = []
