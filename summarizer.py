@@ -37,7 +37,7 @@ class summarizer:
     def index_summary(self, url, summary):
         # assigning a unique id to every url
         try:
-            temp = re.sub(r'.', r';', url)
+            temp = re.sub(r'\.', r';', url)
             self.cur_id = self._hash[temp]
         except KeyError:
             # generate new id for
