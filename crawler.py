@@ -18,17 +18,12 @@ pattern = re.compile(regex, re.UNICODE)
 result_file = open('result.txt', 'w')
 er_file = open('errors.txt', 'w')
 
-# Creating an object of class getSource
-req_obj = getSource()
-sum_obj = summarizer()
-
 
 def add_links_to_queue(url):
     try:
         sp = bs4.BeautifulSoup(req_obj.get_html_text(url), 'lxml')
         for tag in sp.find_all('a', href=True):
             base = 'http://' + req_obj.get_base_hostname()
-            print "Base url: " + base
             link = urljoin(base, tag['href'])
             if re.match(pattern, link) is not None:
                 if link not in visited:
@@ -50,7 +45,8 @@ def bfs(level):
     i = 0
     while i < length:
         add_links_to_queue(queue[0])
-        sum_obj.create_and_index_summary(queue[0])
+        sum_obj.create_and_index_summary(
+            req_obj.get_base_hostname(), req_obj.get_html_text(queue[0]))
         queue.pop(0)
         i = i + 1
     bfs(level - 1)
@@ -65,16 +61,17 @@ def bfs_level(url_begin, level):
 def database_setup():
     # setting up the database
     client = MongoClient('localhost', 27017)
-    db = client['test_project']
-    col = db['summary']
+    db = client["test_project"]
+    col = db["summary"]
     keys = open('stems.txt', 'r').read().split('\n')
-    col.insert({"_id": "hashmap",
-                "total_url": 0,
-                "hash": {}})
+    col.insert({"_id": "_hashmap",
+                "mapping": {}})
     for word in keys:
-        post = '{"_id":"' + word + '","postings":[]}'
-        col.insert(post)
+        col.insert({"_id": word, "postings": []})
 
 if __name__ == '__main__':
+    # Creating an object of class getSource
     database_setup()
+    req_obj = getSource()
+    sum_obj = summarizer()
     bfs_level('http://web.mit.edu', 5)
