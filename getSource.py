@@ -35,8 +35,9 @@ class getSource:
 
     @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def wait_for_connection(self):
-        test = requests.get('http://216.58.197.46', timeout=2)
+        test = requests.get('http://216.58.197.46', timeout=5)
         test.raise_for_status()
+        print "\nResuming\n"
         return
     # retry if HTTP error or connection error occurs
     # delay between consecutive retries is between 5 to 10 seconds
