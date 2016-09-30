@@ -42,7 +42,7 @@ class getSource:
     # retry if HTTP error or connection error occurs
     # delay between consecutive retries is between 5 to 10 seconds
 
-    @retry(stop_max_attempt_number=5, wait_random_min=5000,
+    @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_text(self, url):
         hdr = self.set_header()
@@ -55,6 +55,7 @@ class getSource:
             # check for https
             # openSSL can be used to bypass the SSL layer
             print "SSLError exception caught"
+            return None
         except requests.exceptions.ConnectionError:
             # checking for bad connection
             print "No Internet Connection!\nWaiting for connection"
@@ -65,7 +66,7 @@ class getSource:
         else:
             return None
 
-    @retry(stop_max_attempt_number=5, wait_random_min=5000,
+    @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_binary_response(self, url):
         hdr = self.set_header()
@@ -83,7 +84,7 @@ class getSource:
             raise
         return htmlfile.content
 
-    @retry(stop_max_attempt_number=5, wait_random_min=5000,
+    @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_text_with_params(self, url, payload):
         # this method send requests with parameters in query to particular URL
@@ -102,7 +103,7 @@ class getSource:
             raise
         return htmlfile.text
 
-    @retry(stop_max_attempt_number=5, wait_random_min=5000,
+    @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_binary_with_params(self, url, payload):
         hdr = self.set_header()
