@@ -32,7 +32,8 @@ class summarizer:
 
         # updating the list in database
         self.col.update({"_id": word},
-                        {"postings": l})
+                        {"df": len(l),
+                         "postings": l})
 
     def index_summary(self, url, summary):
         # assigning a unique id to every url
@@ -45,7 +46,7 @@ class summarizer:
             self._hash[temp] = self.cur_id
             # updating the same in database
             self.col.update({"_id": "_hashmap"},
-                            {"df": len(self._hash),
+                            {"Total_urls": len(self._hash),
                              "mapping": self._hash})
 
         # Indexing the summary
@@ -87,6 +88,12 @@ class summarizer:
 
         for anchor_tag in soup.find_all('a', href=True):
 
+            # filtering the out of domain urls
+            regex = r'^https?://([^.]*\.)?[^.]*\.mit\.edu[^.]*'
+            pattern = re.compile(regex, re.UNICODE)
+            temp_url = urljoin("http://" + base_host, anchor_tag['href'])
+            if re.match(temp_url, pattern) is None:
+                continue
             # adding the anchor text to summary
             anchor_string = anchor_tag.string
             summary = ""
@@ -147,7 +154,6 @@ class summarizer:
             # Adding the title text to summary
             if title_string is not None and title_string != "":
                 summary = summary + " " + title_string
-            temp_url = urljoin("http://" + base_host, anchor_tag['href'])
             self.index_summary(temp_url, summary)
             # Indexing the summary of link
             # Index_summary(summary, anchor_tag['href'])
