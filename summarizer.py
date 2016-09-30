@@ -45,7 +45,8 @@ class summarizer:
             self._hash[temp] = self.cur_id
             # updating the same in database
             self.col.update({"_id": "_hashmap"},
-                            {"mapping": self._hash})
+                            {"df": len(self._hash),
+                             "mapping": self._hash})
 
         # Indexing the summary
         # Stemming of the summary
