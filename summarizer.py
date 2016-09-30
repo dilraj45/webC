@@ -8,12 +8,13 @@ from urlparse import urljoin
 class summarizer:
 
     def __init__(self):
-        # establishing connection with the mongodb datbase
+        # establishing connection with the mongodb database
         self.client = MongoClient('localhost', 27017)
         self.db = self.client['test_project']
         self.col = self.db.summary
         self.cur_id = -1
         self.keyword_list = open("stems.txt", "r").read().split('\n')
+
         # fetching the mapping list from database
         doc = self.col.find_one({"_id": "_hashmap"})
         self._hash = {}
@@ -24,6 +25,7 @@ class summarizer:
         # fetching the already existing posting list
         doc = self.col.find_one({"_id": word})
         l = doc['postings']
+
         # if flag is true then the document id may already be present in the
         # posting list of keyword
         if flag:
@@ -35,7 +37,7 @@ class summarizer:
                                     {"df": len(l),
                                      "postings": l})
                     return
-            # adding the new value at correct position in the list
+        # adding the new value at correct position in the list
         index = 0
         while index < len(l) and tf <= l[index][1]:
             index = index + 1
@@ -75,7 +77,7 @@ class summarizer:
                 keys_dic[word] = keys_dic[word] + 1
             else:
                 keys_dic[word] = 1
-        # convering the dictionary to key, value pairs stored in a list
+        # converting the dictionary to key, value pairs stored in a list
         for word in keys_dic:
             self.add_to_db_posting(word, keys_dic[word], flag)
 
@@ -90,6 +92,7 @@ class summarizer:
         if src_content is None:
             return
         soup = BeautifulSoup(src_content, 'lxml')
+
         # Obtaining the title string of page
         title_string = ""
         if soup.title is not None:
@@ -107,6 +110,7 @@ class summarizer:
             temp_url = urljoin("http://" + base_host, anchor_tag['href'])
             if re.match(pattern, temp_url.encode('utf-8')) is None:
                 continue
+
             # adding the anchor text to summary
             anchor_string = anchor_tag.string
             summary = ""
@@ -168,8 +172,6 @@ class summarizer:
             if title_string is not None and title_string != "":
                 summary = summary + " " + title_string
             self.index_summary(temp_url, summary)
-            # Indexing the summary of link
-            # Index_summary(summary, anchor_tag['href'])
             summary = ""
 if __name__ == '__main__':
     obj = summarizer()
