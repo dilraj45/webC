@@ -75,7 +75,7 @@ def database_setup():
     col.insert({"_id": "_hashmap",
                 "mapping": {}})
     for word in keys:
-        col.insert({"_id": word, "postings": []})
+        col.insert({"_id": word, "df": 0, "postings": []})
 
 if __name__ == '__main__':
     # Creating an object of class getSource
