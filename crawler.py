@@ -73,6 +73,7 @@ def database_setup():
     col = db["summary"]
     keys = open('stems.txt', 'r').read().split('\n')
     col.insert({"_id": "_hashmap",
+                "Total_urls": 0,
                 "mapping": {}})
     for word in keys:
         col.insert({"_id": word, "df": 0, "postings": []})
