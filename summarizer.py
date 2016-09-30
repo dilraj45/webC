@@ -19,12 +19,23 @@ class summarizer:
         self._hash = {}
         self._hash = doc['mapping']
 
-    def add_to_db_posting(self, word, tf):
+    def add_to_db_posting(self, word, tf, flag):
         # adding the new entry to 'word' posting list
         # fetching the already existing posting list
         doc = self.col.find_one({"_id": word})
         l = doc['postings']
-        # adding the new value at coorect position in the list
+        # if flag is true then the document id may already be present in the
+        # posting list of keyword
+        if flag:
+            # checking if document id is already present in the posting of word
+            for term in l:
+                if term[0] == self.cur_id:
+                    term[1] = term[1] + tf
+                    self.col.update({"_id": word},
+                                    {"df": len(l),
+                                     "postings": l})
+                    return
+            # adding the new value at correct position in the list
         index = 0
         while index < len(l) and tf <= l[index][1]:
             index = index + 1
@@ -37,9 +48,11 @@ class summarizer:
 
     def index_summary(self, url, summary):
         # assigning a unique id to every url
+        flag = False
         temp = re.sub(r'\.', r';', url)
         if temp in self._hash:
             self.cur_id = self._hash[temp]
+            flag = True
         else:
             # generate new id for
             self.cur_id = len(self._hash) + 1
@@ -64,7 +77,7 @@ class summarizer:
                 keys_dic[word] = 1
         # convering the dictionary to key, value pairs stored in a list
         for word in keys_dic:
-            self.add_to_db_posting(word, keys_dic[word])
+            self.add_to_db_posting(word, keys_dic[word], flag)
 
     def create_and_index_summary(self, base_host, src_content):
         """This function create a summary document for each
@@ -92,7 +105,7 @@ class summarizer:
             regex = r'^https?://([^.]*\.)?[^.]*\.mit\.edu[^.]*'
             pattern = re.compile(regex, re.UNICODE)
             temp_url = urljoin("http://" + base_host, anchor_tag['href'])
-            if re.match(temp_url, pattern) is None:
+            if re.match(pattern, temp_url.encode('utf-8')) is None:
                 continue
             # adding the anchor text to summary
             anchor_string = anchor_tag.string
