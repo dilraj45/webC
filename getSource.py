@@ -9,13 +9,17 @@
 
 from urlparse import urlparse
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from retrying import retry
+import eventlet
 
 
 class getSource:
 
     def __init__(self):
         self.base_url = ""
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        eventlet.monkey_patch()
 
     def get_base_url(self):
         return self.base_url
@@ -33,10 +37,12 @@ class getSource:
                'Accept-Language': 'en-US,en;q=0.8'}
         return hdr
 
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    @retry(wait_random_min=2000, wait_random_max=10000)
     def wait_for_connection(self):
-        test = requests.get('http://216.58.197.46', timeout=5)
-        test.raise_for_status()
+        with eventlet.Timeout(10, False):
+            test = requests.get('http://216.58.197.46',
+                                timeout=5, verify=False)
+            test.raise_for_status()
         print "\nResuming\n"
         return
     # retry if HTTP error or connection error occurs
@@ -48,7 +54,10 @@ class getSource:
         hdr = self.set_header()
         htmlfile = None
         try:
-            htmlfile = requests.get(url, headers=hdr)
+            with eventlet.Timeout(10, False):
+                htmlfile = requests.get(url, headers=hdr, verify=False)
+            if htmlfile is None:
+                raise requests.RequestException()
             self.base_url = htmlfile.url
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
@@ -71,7 +80,8 @@ class getSource:
     def get_html_binary_response(self, url):
         hdr = self.set_header()
         try:
-            htmlfile = requests.get(url, headers=hdr)
+            with eventlet.Timeout(10):
+                htmlfile = requests.get(url, headers=hdr, verify=False)
             self.base_url = htmlfile.url
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
@@ -91,7 +101,9 @@ class getSource:
         # payloads is a dictionary comprising of key value pair
         hdr = self.set_header()
         try:
-            htmlfile = requests.get(url, headers=hdr, params=payload)
+            with eventlet.Timeout(10, False):
+                htmlfile = requests.get(
+                    url, headers=hdr, params=payload, verify=False)
             self.base_url = htmlfile.url
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
@@ -108,7 +120,9 @@ class getSource:
     def get_html_binary_with_params(self, url, payload):
         hdr = self.set_header()
         try:
-            htmlfile = requests.get(url, headers=hdr, params=payload)
+            with eventlet.Timeout(10, False):
+                htmlfile = requests.get(
+                    url, headers=hdr, params=payload, verify=False)
             self.base_url = htmlfile.url
             htmlfile.raise_for_status()
         except requests.exceptions.SSLError:
