@@ -55,7 +55,8 @@ def bfs(level):
             print str(trace) + '\n'
             er_file.write(queue[0] + '\n')
             er_file.write(str(trace) + '\n\n')
-        queue.pop(0)
+        finally:
+            queue.pop(0)
         i = i + 1
     bfs(level - 1)
 
