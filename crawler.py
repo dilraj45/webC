@@ -53,7 +53,7 @@ def bfs(level):
             sum_obj.create_and_index_summary(
                 req_obj.get_base_hostname(), req_obj.get_html_text(queue[0]))
             desc_obj.index_on_page_summary(
-                req_obj.get_html_text(queue[0]), req_obj.get_base_url)
+                req_obj.get_html_text(queue[0]), req_obj.get_base_url())
         except requests.RequestException as trace:
             print str(trace) + '\n'
             er_file.write(queue[0] + '\n')
@@ -78,9 +78,16 @@ def database_setup():
     keys = open('stems.txt', 'r').read().split('\n')
     col.insert({"_id": "_hashmap",
                 "Total_urls": 1,
-                "mapping": {'http://web;mit;edu': 0}})
+                "mapping": {u'http://web;mit;edu/': 0}})
     for word in keys:
+        db.on_page_summary.insert(
+            {"_id": word + "_title", "posting": []})
+        db.on_page_summary.insert(
+            {"_id": word + "_meta", "posting": []})
+        db.on_page_summary.insert(
+            {"_id": word + "_header", "posting": []})
         col.insert({"_id": word, "df": 0, "postings": []})
+
 
 if __name__ == '__main__':
     # Creating an object of class getSource

@@ -21,15 +21,10 @@ class on_page_summarizer:
         # project name
         self.db1 = self.client['test_project']
 
-        # reading from file
-        self.fp = open('stems.txt', 'r').read().split('\n')
-
         # for getting text of a given url
         self.get_obj = None
-        for keyword in self.fp:
-            # here collections are made automatically here
-            self.creating_documents_for_every_word(keyword)
-            # 1st attribute is for word's id and 2nd for posting list
+
+        self.fp = open('stems.txt', 'r').read().split('\n')
 
         # to find the document for finding url an did mapping
         self.doc = self.db1.summary.find_one({"_id": "_hashmap"})
@@ -38,20 +33,6 @@ class on_page_summarizer:
         self.dic = self.doc['mapping']
         # getting the id of URL
         self.id_of_url = None
-
-    def creating_documents_for_every_word(self, keyword):
-        # using keyword as our id
-        # for every keyword we need to store a posting list
-        try:
-            self.db1.on_page_summary.insert(
-                {"_id": keyword + "_title", "posting": []})
-            self.db1.on_page_summary.insert(
-                {"_id": keyword + "_meta", "posting": []})
-            self.db1.on_page_summary.insert(
-                {"_id": keyword + "_header", "posting": []})
-        except Exception as e:
-            print "Exception occured " + e
-            return
 
     def get_dict_words(self, on_page_summary_for_given_tag):
         word_stems = []
@@ -89,7 +70,6 @@ class on_page_summarizer:
         # convering the dictionary to key, value pairs stored in a list
         key_dic = {}
         key_dic = self.get_dict_words(title_text)
-        print key_dic['faculti']
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "title")
 
@@ -110,7 +90,9 @@ class on_page_summarizer:
 
     def index_on_page_summary(self, src_content, url):
         self.get_obj = get_individual_tags_text(src_content)
-        url = re.sub(r',', r';', url)
+        print type(url)
+        print url
+        url = re.sub(r'\.', r';', url)
         self.id_of_url = self.dic[url]
         self.for_title()
         self.for_meta()

@@ -17,7 +17,7 @@ import eventlet
 class getSource:
 
     def __init__(self):
-        self.base_url = ""
+        self.base_url = None
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
         eventlet.monkey_patch()
 
