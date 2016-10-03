@@ -14,7 +14,7 @@ import re
 
 class on_page_summarizer:
 
-    def __init__(self, src_content, url):
+    def __init__(self):
         # for connection establishing
         self.client = MongoClient('localhost', 27017)
 
@@ -25,7 +25,7 @@ class on_page_summarizer:
         self.fp = open('stems.txt', 'r').read().split('\n')
 
         # for getting text of a given url
-        self.get_obj = get_individual_tags_text(src_content)
+        self.get_obj = None
         for keyword in self.fp:
             # here collections are made automatically here
             self.creating_documents_for_every_word(keyword)
@@ -37,8 +37,7 @@ class on_page_summarizer:
         # to get the dictionary
         self.dic = self.doc['mapping']
         # getting the id of URL
-        url = re.sub(r',', r';', url)
-        self.id_of_url = self.dic[url]
+        self.id_of_url = None
 
     def creating_documents_for_every_word(self, keyword):
         # using keyword as our id
@@ -109,8 +108,10 @@ class on_page_summarizer:
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "header")
 
-    def index_on_page_summary(self):
-        # for every tag
+    def index_on_page_summary(self, src_content, url):
+        self.get_obj = get_individual_tags_text(src_content)
+        url = re.sub(r',', r';', url)
+        self.id_of_url = self.dic[url]
         self.for_title()
         self.for_meta()
         self.for_header()

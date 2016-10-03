@@ -5,6 +5,7 @@ from sets import Set
 import bs4
 from getSource import getSource
 from summarizer import summarizer
+from indexer_on_page import on_page_summarizer
 from pymongo import MongoClient
 import requests
 
@@ -51,6 +52,8 @@ def bfs(level):
         try:
             sum_obj.create_and_index_summary(
                 req_obj.get_base_hostname(), req_obj.get_html_text(queue[0]))
+            desc_obj.index_on_page_summary(
+                req_obj.get_html_text(queue[0]), req_obj.get_base_url)
         except requests.RequestException as trace:
             print str(trace) + '\n'
             er_file.write(queue[0] + '\n')
@@ -74,8 +77,8 @@ def database_setup():
     col = db["summary"]
     keys = open('stems.txt', 'r').read().split('\n')
     col.insert({"_id": "_hashmap",
-                "Total_urls": 0,
-                "mapping": {}})
+                "Total_urls": 1,
+                "mapping": {'http://web;mit;edu': 0}})
     for word in keys:
         col.insert({"_id": word, "df": 0, "postings": []})
 
@@ -84,4 +87,5 @@ if __name__ == '__main__':
     database_setup()
     req_obj = getSource()
     sum_obj = summarizer()
+    desc_obj = on_page_summarizer()
     bfs_level('http://web.mit.edu', 5)
