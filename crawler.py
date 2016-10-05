@@ -6,6 +6,7 @@ import bs4
 from getSource import getSource
 from summarizer import summarizer
 from indexer_on_page import on_page_summarizer
+from summarizer2 import summary_generator
 from pymongo import MongoClient
 import requests
 
@@ -20,9 +21,8 @@ result_file = open('result.txt', 'w+')
 er_file = open('errors.txt', 'w+')
 
 
-def add_links_to_queue(url):
+def add_links_to_queue(ht_text, url):
     try:
-        ht_text = req_obj.get_html_text(url)
         if ht_text is None:
             return
         sp = bs4.BeautifulSoup(ht_text, 'lxml')
@@ -48,18 +48,23 @@ def bfs(level):
         return
     i = 0
     while i < length:
-        add_links_to_queue(queue[0])
         try:
+            text = req_obj.get_html_text(queue[0])
+            if text is None:
+                raise requests.RequestException()
+            add_links_to_queue(text, queue[0])
+            # summary generated using summarizer1
             sum_obj.create_and_index_summary(
-                req_obj.get_base_hostname(), req_obj.get_html_text(queue[0]))
-            desc_obj.index_on_page_summary(
-                req_obj.get_html_text(queue[0]), req_obj.get_base_url())
+                req_obj.get_base_hostname(), text)
+            # summary generated using summarizer2
+            # sum_obj2.create_and_index_summary(
+            # req_obj.get_base_hostname(), text)
+            on_pg_sum.index_on_page_summary(text, queue[0])
         except requests.RequestException as trace:
             print str(trace) + '\n'
             er_file.write(queue[0] + '\n')
             er_file.write(str(trace) + '\n\n')
-        finally:
-            queue.pop(0)
+        queue.pop(0)
         i = i + 1
     bfs(level - 1)
 
@@ -73,12 +78,12 @@ def bfs_level(url_begin, level):
 def database_setup():
     # setting up the database
     client = MongoClient('localhost', 27017)
-    db = client["test_project"]
+    db = client["test_project2"]
     col = db["summary"]
     keys = open('stems.txt', 'r').read().split('\n')
     col.insert({"_id": "_hashmap",
                 "Total_urls": 1,
-                "mapping": {u'http://web;mit;edu/': 0}})
+                "mapping": {'http://web;mit;edu': 0}})
     for word in keys:
         db.on_page_summary.insert(
             {"_id": word + "_title", "posting": []})
@@ -86,6 +91,8 @@ def database_setup():
             {"_id": word + "_meta", "posting": []})
         db.on_page_summary.insert(
             {"_id": word + "_header", "posting": []})
+        db.on_page_summary.insert(
+            {"_id": word + "_table", "posting": []})
         col.insert({"_id": word, "df": 0, "postings": []})
 
 
@@ -94,5 +101,6 @@ if __name__ == '__main__':
     database_setup()
     req_obj = getSource()
     sum_obj = summarizer()
-    desc_obj = on_page_summarizer()
-    bfs_level('http://web.mit.edu', 5)
+    on_pg_sum = on_page_summarizer()
+    # sum_obj2 = summary_generator()
+    bfs_level('http://web.mit.edu', 4)

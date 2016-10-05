@@ -80,7 +80,8 @@ class getSource:
     def get_html_binary_response(self, url):
         hdr = self.set_header()
         try:
-            with eventlet.Timeout(10):
+            htmlfile = None
+            with eventlet.Timeout(10, False):
                 htmlfile = requests.get(url, headers=hdr, verify=False)
             self.base_url = htmlfile.url
             htmlfile.raise_for_status()

@@ -19,7 +19,7 @@ class on_page_summarizer:
         self.client = MongoClient('localhost', 27017)
 
         # project name
-        self.db1 = self.client['test_project']
+        self.db1 = self.client['test_project2']
 
         # for getting text of a given url
         self.get_obj = None
@@ -28,7 +28,6 @@ class on_page_summarizer:
 
         # to find the document for finding url an did mapping
         self.doc = self.db1.summary.find_one({"_id": "_hashmap"})
-
         # to get the dictionary
         self.dic = self.doc['mapping']
         # getting the id of URL
@@ -54,10 +53,8 @@ class on_page_summarizer:
         doc = self.db1.on_page_summary.find_one({"_id": keyword + "_" + tag})
         posting_list = doc['posting']
         # adding the new value at coorect position in the list
-        index = 0
-        while index < len(posting_list):
-            index = index + 1
         posting_list.append([self.id_of_url, count])
+        print posting_list
         # updating the list in database
         self.db1.on_page_summary.update(
             {"_id": keyword + "_" + tag},
@@ -82,18 +79,34 @@ class on_page_summarizer:
             self.add_to_db_posting(word, key_dic[word], "meta")
 
     def for_header(self):
-        header_text = self.get_obj.get_meta_text()
+        header_text = self.get_obj.get_header_text()
         key_dic = {}
         key_dic = self.get_dict_words(header_text)
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "header")
 
+    def for_table(self):
+        table_text = self.get_obj.get_table_text()
+        key_dic = {}
+        key_dic = self.get_dict_words(table_text)
+        for word in key_dic:
+            self.add_to_db_posting(word, key_dic[word], "table")
+
+    def fetch_updated_list(self):
+        self.doc = self.db1.summary.find_one({"_id": "_hashmap"})
+        # to get the dictionary
+        self.dic = self.doc['mapping']
+
     def index_on_page_summary(self, src_content, url):
+        self.fetch_updated_list()
         self.get_obj = get_individual_tags_text(src_content)
-        print type(url)
-        print url
-        url = re.sub(r'\.', r';', url)
-        self.id_of_url = self.dic[url]
+        url = re.sub(r'\.', r';', url.encode('utf-8'))
+        try:
+            self.id_of_url = self.dic[url]
+        except KeyError as e:
+            print "Key Error-------"
+            print e
         self.for_title()
         self.for_meta()
         self.for_header()
+        self.for_table()
