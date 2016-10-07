@@ -1,5 +1,6 @@
 """Web Crawler"""
 from urlparse import urljoin
+from urlparse import urlparse
 import re
 from sets import Set
 import bs4
@@ -19,6 +20,15 @@ pattern = re.compile(regex, re.UNICODE)
 # for holding errors and exceptions
 result_file = open('result.txt', 'w+')
 er_file = open('errors.txt', 'w+')
+lk_nr = open('extensions.txt', 'r').read().split('\n')
+
+
+def check_link(link):
+    for ext in lk_nr:
+        if ext in link:
+            return False
+        else:
+            return True
 
 
 def add_links_to_queue(ht_text, url):
@@ -28,12 +38,13 @@ def add_links_to_queue(ht_text, url):
         sp = bs4.BeautifulSoup(ht_text, 'lxml')
         for tag in sp.find_all('a', href=True):
             base = 'http://' + req_obj.get_base_hostname()
-            link = urljoin(base, tag['href'])
+            link = urljoin(base, urlparse(tag['href']).path)
             if re.match(pattern, link) is not None:
                 if link not in visited:
-                    queue.append(link)
-                    result_file.write((link).encode('utf-8') + '\n')
-                    visited.add(link)
+                    if check_link(link):
+                        queue.append(link)
+                        result_file.write((link).encode('utf-8') + '\n')
+                        visited.add(link)
 
     except (requests.RequestException, requests.exceptions.SSLError)as trace:
         print str(trace) + '\n'
@@ -57,8 +68,8 @@ def bfs(level):
             sum_obj.create_and_index_summary(
                 req_obj.get_base_hostname(), text)
             # summary generated using summarizer2
-            # sum_obj2.create_and_index_summary(
-            # req_obj.get_base_hostname(), text)
+            sum_obj2.create_and_index_summary(
+                req_obj.get_base_hostname(), text)
             on_pg_sum.index_on_page_summary(text, queue[0])
         except requests.RequestException as trace:
             print str(trace) + '\n'
@@ -101,6 +112,6 @@ if __name__ == '__main__':
     database_setup()
     req_obj = getSource()
     sum_obj = summarizer()
+    sum_obj2 = summary_generator()
     on_pg_sum = on_page_summarizer()
-    # sum_obj2 = summary_generator()
     bfs_level('http://web.mit.edu', 4)
