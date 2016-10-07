@@ -10,7 +10,7 @@ class summarizer:
     def __init__(self):
         # establishing connection with the mongodb database
         self.client = MongoClient('localhost', 27017)
-        self.db = self.client['test_project2']
+        self.db = self.client['test_project']
         self.col = self.db.summary
         self.cur_id = -1
         self.keyword_list = open("stems.txt", "r").read().split('\n')

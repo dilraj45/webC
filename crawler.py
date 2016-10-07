@@ -4,10 +4,10 @@ from urlparse import urlparse
 import re
 from sets import Set
 import bs4
-from getSource import getSource
-from summarizer import summarizer
-from indexer_on_page import on_page_summarizer
-from summarizer2 import summary_generator
+from webCrawler.getSource import getSource
+from webCrawler.summarizer import summarizer
+from webCrawler.indexer_on_page import on_page_summarizer
+from webCrawler.summarizer2 import summary_generator
 from pymongo import MongoClient
 import requests
 
@@ -20,7 +20,7 @@ pattern = re.compile(regex, re.UNICODE)
 # for holding errors and exceptions
 result_file = open('result.txt', 'w+')
 er_file = open('errors.txt', 'w+')
-lk_nr = open('extensions.txt', 'r').read().split('\n')
+lk_nr = open('ext.txt', 'r').read().split('\n')
 
 
 def check_link(link):

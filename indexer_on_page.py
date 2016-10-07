@@ -9,6 +9,7 @@
 from pymongo import MongoClient
 from stemming.porter2 import stem
 from get_text_from_tag_for_url import get_individual_tags_text
+from get_text_from_html_tag import get_html_tag_text
 import re
 
 
@@ -19,10 +20,11 @@ class on_page_summarizer:
         self.client = MongoClient('localhost', 27017)
 
         # project name
-        self.db1 = self.client['test_project2']
+        self.db1 = self.client['test_project']
 
         # for getting text of a given url
         self.get_obj = None
+        self.get_html_text_obj = None
 
         self.fp = open('stems.txt', 'r').read().split('\n')
 
@@ -92,6 +94,13 @@ class on_page_summarizer:
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "table")
 
+    def for_html(self):
+        html_text = self.get_html_text_obj.get_html_text()
+        key_dic = {}
+        key_dic = self.get_dict_words(html_text)
+        for word in key_dic:
+            self.add_to_db_posting(word, key_dic[word], "html")
+
     def fetch_updated_list(self):
         self.doc = self.db1.summary.find_one({"_id": "_hashmap"})
         # to get the dictionary
@@ -100,12 +109,14 @@ class on_page_summarizer:
     def index_on_page_summary(self, src_content, url):
         self.fetch_updated_list()
         self.get_obj = get_individual_tags_text(src_content)
+        self.get_html_text_obj = get_html_tag_text(src_content)
         url = re.sub(r'\.', r';', url.encode('utf-8'))
         try:
             self.id_of_url = self.dic[url]
         except KeyError as e:
             print "Key Error-------"
             print e
+        self.for_html()
         self.for_title()
         self.for_meta()
         self.for_header()
