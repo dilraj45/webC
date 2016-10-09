@@ -3,6 +3,7 @@ import re
 from pymongo import MongoClient
 from stemming.porter2 import stem
 from urlparse import urljoin
+import requests
 
 
 class summarizer:
@@ -42,7 +43,6 @@ class summarizer:
         while index < len(l) and tf <= l[index][1]:
             index = index + 1
         l.insert(index, [self.cur_id, tf])
-
         # updating the list in database
         self.col.update({"_id": word},
                         {"df": len(l),
@@ -63,7 +63,6 @@ class summarizer:
             self.col.update({"_id": "_hashmap"},
                             {"Total_urls": len(self._hash),
                              "mapping": self._hash})
-
         # Indexing the summary
         # Stemming of the summary
         word_stems = []
@@ -81,7 +80,7 @@ class summarizer:
         for word in keys_dic:
             self.add_to_db_posting(word, keys_dic[word], flag)
 
-    def create_and_index_summary(self, base_host, src_content):
+    def create_and_index_summary(self, base_url, src_content):
         """This function create a summary document for each
         link present on the page and create a posting list which
         is stored in the directory Postings
@@ -89,10 +88,7 @@ class summarizer:
         Posting list will be created for each link in anchor tag"""
 
         # creating a soup object from requests object
-        if src_content is None:
-            return
         soup = BeautifulSoup(src_content, 'lxml')
-
         # Obtaining the title string of page
         title_string = ""
         if soup.title is not None:
@@ -105,21 +101,29 @@ class summarizer:
         for anchor_tag in soup.find_all('a', href=True):
 
             # filtering the out of domain urls
-            regex = r'^https?://([^.]*\.)?[^.]*\.mit\.edu[^.]*'
+            regex = r'^https?://([^.]*\.)?[^.]*\.stanford\.edu[^.]*'
             pattern = re.compile(regex, re.UNICODE)
-            temp_url = urljoin("http://" + base_host, anchor_tag['href'])
+            temp_url = urljoin(base_url, anchor_tag['href'])
             if re.match(pattern, temp_url.encode('utf-8')) is None:
                 continue
 
-            # adding the anchor text to summary
+            # Adding the anchor text to summary
             anchor_string = anchor_tag.string
             summary = ""
             if anchor_string is not None:
                 summary = re.sub(r'@', r' @ ', anchor_string.encode('utf -8'))
                 summary = re.sub(r'[^a-zA-Z0-9@ ]', r'',
                                  summary.lower())
-
-            # adding the text of previous and next siblings to tags to summary
+            # Adding the href of anchor tag to summary
+            try:
+                href = anchor_tag['href']
+                href = re.sub(r'@', r' @ ', href.encode('utf -8'))
+                href = re.sub(r'[^a-zA-Z0-9@ ]', r'',
+                              href.lower())
+                summary = summary + " " + href
+            except AttributeError as e:
+                print e
+            # Adding the text of previous and next siblings to tags to summary
             n_sibling = anchor_tag.next_sibling
             while n_sibling is not None:
                 # n_sibling.string can be None for DEBUGGING
@@ -150,6 +154,7 @@ class summarizer:
             # Adding the content of heading tag that appears just above
             # the given tag in the parse tree
             # regular expression for heading tags
+
             regex = r'h[0-9]'
             pattern = re.compile(regex)
             heading_tag = anchor_tag.parent
@@ -173,5 +178,9 @@ class summarizer:
                 summary = summary + " " + title_string
             self.index_summary(temp_url, summary)
             summary = ""
+
+
 if __name__ == '__main__':
+    htmlfile = requests.get('http://stanford.edu')
     obj = summarizer()
+    obj.create_and_index_summary('http://stanford.edu', htmlfile.text)

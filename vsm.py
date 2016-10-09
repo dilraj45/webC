@@ -26,13 +26,13 @@ class Vector_Space_Model:
             self.rank_sum[self.hashmap[key]] = 0
             self.rank_pg[self.hashmap[key]] = 0
         # Fetching the keyword list
-        self.fp = open('stems.txt', 'r').read().split('\n')
+        self.fp = open('stem_tw.txt', 'r').read().split('\n')
         self.result = open('r.txt', 'w+')
 
-    def rank_summary(self, df, postings):
+    def rank_summary(self, tw, df, postings):
         # fetching the posting list
         # tf for keyword is on ein query
-        s = 1
+        s = tw
         if df is 0:
             return
         m = math.log(float(self.total_docs + 1) / df, 10)
@@ -48,18 +48,20 @@ class Vector_Space_Model:
                          "ranks": self.rank_sum})
 
     def fetch_and_rank_summary(self):
-        for keyword in self.fp:
+        for pair in self.fp:
+            keyword = pair.split(',')[0]
+            tw = float(pair.split(',')[1])
             doc = self.col.find_one({'_id': keyword})
             df = doc['df']
-            self.rank_summary(df, doc["postings"])
+            self.rank_summary(tw, df, doc["postings"])
         # normalizing ranks
         mx_key = max(self.rank_sum.iteritems(), key=operator.itemgetter(1))[0]
         mx = self.rank_sum[mx_key]
         for t in self.rank_sum:
             self.rank_sum[t] = self.rank_sum[t] / mx
 
-    def rank_on_page(self, df, postings):
-        s = 1
+    def rank_on_page(self, tw, df, postings):
+        s = tw
         if df is 0:
             return
         m = math.log(float(self.total_docs + 1) / df, 10)
@@ -70,22 +72,30 @@ class Vector_Space_Model:
             self.rank_pg[x[0]] = self.rank_pg[x[0]] + t
 
     def fetch_rank_on_page_features(self):
-        for keyword in self.fp:
+        for pair in self.fp:
+            keyword = pair.split(',')[0]
+            tw = float(pair.split(',')[1])
             # doc = self.col1.find_one({'_id': keyword + "_title"})
             # df = len(doc['posting'])
-            # self.rank_on_page(df, doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
             # doc = self.col1.find_one({'_id': keyword + "_header"})
             # df = len(doc['posting'])
             # self.rank_on_page(df, doc['posting'])
             doc = self.col1.find_one({'_id': keyword + "_meta"})
             df = len(doc['posting'])
-            self.rank_on_page(df, doc['posting'])
+            self.rank_on_page(tw, df, doc['posting'])
+            # doc = self.col1.find_one({'_id': keyword + "_cur_a"})
+            # df = len(doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
+            doc = self.col1.find_one({'_id': keyword + "_a"})
+            df = len(doc['posting'])
+            self.rank_on_page(tw, df, doc['posting'])
             # doc = self.col1.find_one({'_id': keyword + "_table"})
             # df = len(doc['posting'])
             # self.rank_on_page(df, doc['posting'])
             doc = self.col1.find_one({'_id': keyword + "_html"})
             df = len(doc['posting'])
-            self.rank_on_page(df, doc['posting'])
+            self.rank_on_page(tw, df, doc['posting'])
 
         # sorting the ranks
         # normalizing ranks

@@ -47,7 +47,6 @@ class on_page_summarizer:
                     key_dic[word] = key_dic[word] + 1
                 else:
                     key_dic[word] = 1
-
         return key_dic
 
     # HERE id of url is generated before it is called
@@ -56,7 +55,6 @@ class on_page_summarizer:
         posting_list = doc['posting']
         # adding the new value at coorect position in the list
         posting_list.append([self.id_of_url, count])
-        print posting_list
         # updating the list in database
         self.db1.on_page_summary.update(
             {"_id": keyword + "_" + tag},
@@ -101,6 +99,21 @@ class on_page_summarizer:
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "html")
 
+    def cur_anchor(self, url):
+        key_dic = {}
+        # Removing symbols from url
+        cur_text = re.sub(r'[^a-zA-Z0-9 ]', r' ', url)
+        key_dic = self.get_dict_words(cur_text)
+        for word in key_dic:
+            self.add_to_db_posting(word, key_dic[word], "cur_a")
+
+    def for_anchor(self):
+        anchor = self.get_obj.get_anchor_tag()
+        key_dic = {}
+        key_dic = self.get_dict_words(anchor)
+        for word in key_dic:
+            self.add_to_db_posting(word, key_dic[word], "a")
+
     def fetch_updated_list(self):
         self.doc = self.db1.summary.find_one({"_id": "_hashmap"})
         # to get the dictionary
@@ -121,3 +134,5 @@ class on_page_summarizer:
         self.for_meta()
         self.for_header()
         self.for_table()
+        self.cur_anchor(url)
+        self.for_anchor()

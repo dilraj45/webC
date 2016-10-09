@@ -16,7 +16,7 @@ class get_individual_tags_text:
             return ""
         try:
             for title_tag in self.soup.find_all('title'):
-                text = text + title_tag.get_text()
+                text = text + " " + title_tag.get_text()
 
         except TypeError:
             pass
@@ -31,7 +31,7 @@ class get_individual_tags_text:
             return ""
         try:
             for meta_tag in self.soup.find_all('meta'):
-                text = text + meta_tag['content']
+                text = text + " " + meta_tag['content']
         except (TypeError, KeyError):
             pass
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
@@ -45,9 +45,23 @@ class get_individual_tags_text:
             return ""
         try:
             for table_tag in self.soup.find_all('table'):
-                text = text + table_tag.get_text()
+                text = text + " " + table_tag.get_text()
         except TypeError:
             pass
+        text = re.sub(r'[^\x00-\x7F]+', ' ', text)
+        text = re.sub(r'@', r' @ ', text.encode('utf -8'))
+        text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))
+        return text
+
+    def get_anchor_tag(self):
+        text = ""
+        if self.soup is None:
+            return ""
+        try:
+            for tag in self.soup.find_all('a', href=True):
+                text = text + " " + tag['href']
+        except AttributeError as e:
+            print e
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
         text = re.sub(r'@', r' @ ', text.encode('utf -8'))
         text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))

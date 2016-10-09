@@ -13,9 +13,9 @@ class summary_generator:
         self.links_summary = {}
         self.title_string = ""
         self.heading_string = ""
-        self.base_host = None
+        self.base_url = None
         # establishing connection with Mongodb database
-        self.client = MongoClient('localhost ')
+        self.client = MongoClient('localhost', 27017)
         self.db = self.client['test_project']
         self.col = self.db.summary2
         self.cur_id = -1
@@ -90,18 +90,33 @@ class summary_generator:
     def generate_summary(self, idx):
         prev = idx - 1
         prev_string = None
-        anchor_text = self.queue[idx].string
+        anchor_text = None
+        try:
+            anchor_text = self.queue[idx].string
+        except AttributeError as e:
+            print e
         if anchor_text is not None:
             anchor_text = re.sub(r'@', r' @ ', anchor_text.encode('utf-8'))
-            anchor_text = re.sub(r'[^a-zA-Z0-9@ ]', r'', anchor_text)
+            anchor_text = re.sub(r'[^a-zA-Z0-9@ ]', r' ', anchor_text)
         else:
             anchor_text = ""
-
+        # Adding the anchor tag's href to anchor_text
+        try:
+            href = self.queue[idx]['href']
+            href = re.sub(r'@', r' @ ', href.encode('utf-8'))
+            href = re.sub(r'[^a-zA-Z0-9@ ]', r' ', href)
+            anchor_text = anchor_text + " " + href
+        except (AttributeError, TypeError) as e:
+            print e
         while prev >= 0:
-            prev_string = self.queue[prev].string
+            prev_string = None
+            try:
+                prev_string = self.queue[prev].string
+            except AttributeError:
+                pass
             if prev_string is not None:
                 prev_string = re.sub(r'@', r' @ ', prev_string.encode('utf-8'))
-                prev_string = re.sub(r'[^a-zA-Z0-9@ ]', r'', prev_string)
+                prev_string = re.sub(r'[^a-zA-Z0-9@ ]', r' ', prev_string)
                 if prev_string != "":
                     break
             prev = prev - 1
@@ -112,7 +127,7 @@ class summary_generator:
             nxt_string = self.queue[nxt].string
             if nxt_string is not None:
                 nxt_string = re.sub(r'@', r' @ ', nxt_string.encode('utf-8'))
-                nxt_string = re.sub(r'[^a-zA-Z0-9@ ]', r'', nxt_string)
+                nxt_string = re.sub(r'[^a-zA-Z0-9@ ]', r' ', nxt_string)
                 if nxt_string != "":
                     break
             nxt = nxt + 1
@@ -129,28 +144,40 @@ class summary_generator:
         summary = ""
         for idx, child in enumerate(self.queue):
             # if it is title tag
-            if child.name == 'title':
-                self.title_string = child.string.encode('utf-8')
+            try:
+                if child.name == 'title':
+                    if child.string is not None:
+                        self.title_string = child.string.encode('utf-8')
+                # if tag is one from headings tag
+                regex = r'h[0-9]'
+                pattern = re.compile(regex)
+                if child.name is not None:
+                    if re.match(pattern, child.name.encode('utf-8')) \
+                            is not None:
+                        if child.string is not None:
+                            self.heading_string = self.heading_string + \
+                                child.string.encode('utf-8')
 
-            # if tag is one from headings tag
-            regex = r'h[0-9]'
-            pattern = re.compile(regex)
-            if re.match(pattern, child.name.encode('utf-8')) is not None:
-                self.heading_string = self.heading_string + \
-                    child.string.encode('utf-8')
-
-            # if tag is an anchor tag
-            if child.name == 'a':
-                # creating a complete url
-                temp_url = urljoin('http://' + self.base_host, child['href'])
-                self.queue[idx] = temp_url
-                summary = self.generate_summary(idx)
-                self.index_summary(temp_url, summary)
+                # if tag is an anchor tag
+                if child.name == 'a':
+                    # creating a complete url
+                    try:
+                        temp_url = urljoin(
+                            self.base_url, child['href'])
+                        summary = self.generate_summary(idx)
+                        self.index_summary(temp_url, summary)
+                    except KeyError:
+                        pass
+            except AttributeError:
+                print "Attribute error"
 
     def add_children_to_queue(self, parent_tag):
-        if parent_tag is None or parent_tag.name is None:
+        try:
+            if parent_tag is None or parent_tag.name is None:
+                return
+        except AttributeError:
             return
-        children = list(parent_tag.children)
+        children = parent_tag.contents
         for child in children:
             if child is not None:
                 self.queue.append(child)
@@ -162,9 +189,11 @@ class summary_generator:
             return
         self.search_and_summarize_tag()
         while i < length:
-            tag = self.queue[0]
+            if self.queue[0] is not None:
+                tag = self.queue[0]
+                self.add_children_to_queue(tag)
             self.queue.pop(0)
-            self.add_children_to_queue(tag)
+
             i = i + 1
         self.bfs()
 
@@ -172,7 +201,7 @@ class summary_generator:
         while len(self.queue) > 0:
             self.bfs()
 
-    def create_and_index_summary(self, base_host, src_content):
+    def create_and_index_summary(self, base_url, src_content):
         """This function create a summary document for each
         link present on the page and create a posting list which
         is stored in the directory Postings
@@ -180,7 +209,7 @@ class summary_generator:
         Posting list will be created for each link in anchor tag"""
 
         # creating a soup object from requests object
-        self.base_host = base_host
+        self.base_url = base_url
         soup = BeautifulSoup(src_content, 'lxml')
         root = soup.find('html')
         self.queue.append(root)
