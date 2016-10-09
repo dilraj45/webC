@@ -54,3 +54,5 @@ grad
 professor
 dir
 @
+event
+news

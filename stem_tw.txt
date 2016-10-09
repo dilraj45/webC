@@ -54,3 +54,5 @@ grad,1
 professor,1
 dir,10
 @,10
+news,0
+event,0
