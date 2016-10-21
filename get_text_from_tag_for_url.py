@@ -22,7 +22,7 @@ class get_individual_tags_text:
             pass
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
         text = re.sub(r'@', r' @ ', text.encode('utf -8'))
-        text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))
+        text = re.sub(r'[^a-zA-Z0-9@ ]', ' ', text.encode('utf -8'))
         return text
 
     def get_meta_text(self):
@@ -36,7 +36,7 @@ class get_individual_tags_text:
             pass
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
         text = re.sub(r'@', r' @ ', text.encode('utf -8'))
-        text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))
+        text = re.sub(r'[^a-zA-Z0-9@ ]', ' ', text.encode('utf -8'))
         return text
 
     def get_table_text(self):
@@ -50,7 +50,7 @@ class get_individual_tags_text:
             pass
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
         text = re.sub(r'@', r' @ ', text.encode('utf -8'))
-        text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))
+        text = re.sub(r'[^a-zA-Z0-9@ ]', ' ', text.encode('utf -8'))
         return text
 
     def get_anchor_tag(self):
@@ -58,13 +58,13 @@ class get_individual_tags_text:
         if self.soup is None:
             return ""
         try:
-            for tag in self.soup.find_all('a', href=True):
+            for tag in self.soup.find_all('a'):
                 text = text + " " + tag['href']
         except AttributeError as e:
             print e
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
         text = re.sub(r'@', r' @ ', text.encode('utf -8'))
-        text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))
+        text = re.sub(r'[^a-zA-Z0-9@ ]', ' ', text.encode('utf -8'))
         return text
 
     def get_header_text(self):
@@ -73,26 +73,26 @@ class get_individual_tags_text:
             return ""
         try:
             for header_tag in self.soup.find_all('h1'):
-                text = text + header_tag.get_text()
+                text = text + header_tag.get_text() + " "
 
             for header_tag in self.soup.find_all('h2'):
-                text = text + header_tag.get_text()
+                text = text + header_tag.get_text() + " "
 
             for header_tag in self.soup.find_all('h3'):
-                text = text + header_tag.get_text()
+                text = text + header_tag.get_text() + " "
 
             for header_tag in self.soup.find_all('h4'):
-                text = text + header_tag.get_text()
+                text = text + header_tag.get_text() + " "
 
             for header_tag in self.soup.find_all('h5'):
-                text = text + header_tag.get_text()
+                text = text + header_tag.get_text() + " "
 
             for header_tag in self.soup.find_all('h6'):
-                text = text + header_tag.get_text()
+                text = text + header_tag.get_text() + " "
         except TypeError:
             pass
         text = re.sub(r'[^\x00-\x7F]+', ' ', text)
         text = re.sub(r'@', r' @ ', text.encode('utf -8'))
-        text = re.sub(r'[^a-zA-Z0-9@ ]', '', text.encode('utf -8'))
+        text = re.sub(r'[^a-zA-Z0-9@ ]', ' ', text.encode('utf -8'))
         # print text
         return text

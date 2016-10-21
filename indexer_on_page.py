@@ -102,7 +102,7 @@ class on_page_summarizer:
     def cur_anchor(self, url):
         key_dic = {}
         # Removing symbols from url
-        cur_text = re.sub(r'[^a-zA-Z0-9 ]', r' ', url)
+        cur_text = re.sub(r'[^a-zA-Z]', r' ', url)
         key_dic = self.get_dict_words(cur_text)
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "cur_a")

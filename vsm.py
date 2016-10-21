@@ -10,7 +10,7 @@ class Vector_Space_Model:
     def __init__(self):
         client = MongoClient()
         db = client['test_project']
-        self.col = db.summary2
+        self.col = db.summary
         self.col1 = db.on_page_summary
         # fetching hashmap in main memory
         doc = self.col.find_one({"_id": "_hashmap"})
@@ -75,18 +75,18 @@ class Vector_Space_Model:
         for pair in self.fp:
             keyword = pair.split(',')[0]
             tw = float(pair.split(',')[1])
-            # doc = self.col1.find_one({'_id': keyword + "_title"})
-            # df = len(doc['posting'])
-            # self.rank_on_page(tw, df, doc['posting'])
-            # doc = self.col1.find_one({'_id': keyword + "_header"})
-            # df = len(doc['posting'])
-            # self.rank_on_page(df, doc['posting'])
+            doc = self.col1.find_one({'_id': keyword + "_title"})
+            df = len(doc['posting'])
+            self.rank_on_page(tw, df, doc['posting'])
+            doc = self.col1.find_one({'_id': keyword + "_header"})
+            df = len(doc['posting'])
+            self.rank_on_page(tw, df, doc['posting'])
             doc = self.col1.find_one({'_id': keyword + "_meta"})
             df = len(doc['posting'])
             self.rank_on_page(tw, df, doc['posting'])
-            # doc = self.col1.find_one({'_id': keyword + "_cur_a"})
-            # df = len(doc['posting'])
-            # self.rank_on_page(tw, df, doc['posting'])
+            doc = self.col1.find_one({'_id': keyword + "_cur_a"})
+            df = len(doc['posting'])
+            self.rank_on_page(tw, df, doc['posting'])
             doc = self.col1.find_one({'_id': keyword + "_a"})
             df = len(doc['posting'])
             self.rank_on_page(tw, df, doc['posting'])
@@ -106,8 +106,8 @@ class Vector_Space_Model:
 
     def compute_final_ranks(self):
         for key in self.rank_sum:
-            self.final_rank[key] = 0.3 * \
-                self.rank_sum[key] + 0.7 * self.rank_pg[key]
+            self.final_rank[key] = 0.1 * \
+                self.rank_sum[key] + 0.9 * self.rank_pg[key]
         # sorting
         sorted_list = sorted(
             self.final_rank.items(), key=operator.itemgetter(1), reverse=True)

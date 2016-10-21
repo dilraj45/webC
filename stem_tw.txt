@@ -27,7 +27,7 @@ type,1
 pesonnel,1
 whoiswho,1
 faculti,10
-peopl,5
+peopl,10
 ladder,1
 worker,1
 about,1
@@ -54,5 +54,5 @@ grad,1
 professor,1
 dir,10
 @,10
-news,0
-event,0
+news,-10
+event,-10
