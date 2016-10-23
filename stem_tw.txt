@@ -51,7 +51,7 @@ pedagogu,1
 broad,1
 academ,2
 grad,1
-professor,1
+professor,5
 dir,10
 @,10
 news,-10

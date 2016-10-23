@@ -114,6 +114,13 @@ class on_page_summarizer:
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "a")
 
+    def for_webpage_summary(self):
+        page_summary = self.get_obj.get_page_summary()
+        key_dic = {}
+        key_dic = self.get_dict_words(page_summary)
+        for word in key_dic:
+            self.add_to_db_posting(word, key_dic[word], 'page')
+
     def fetch_updated_list(self):
         self.doc = self.db1.summary.find_one({"_id": "_hashmap"})
         # to get the dictionary
@@ -121,7 +128,7 @@ class on_page_summarizer:
 
     def index_on_page_summary(self, src_content, url):
         self.fetch_updated_list()
-        self.get_obj = get_individual_tags_text(src_content)
+        self.get_obj = get_individual_tags_text(src_content, url)
         self.get_html_text_obj = get_html_tag_text(src_content)
         url = re.sub(r'\.', r';', url.encode('utf-8'))
         try:
@@ -136,3 +143,4 @@ class on_page_summarizer:
         self.for_table()
         self.cur_anchor(url)
         self.for_anchor()
+        self.for_webpage_summary()

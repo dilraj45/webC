@@ -67,7 +67,7 @@ def bfs(level):
                 req_obj.get_base_url(), text)
             # summary generated using summarizer2
             sum_obj2.create_and_index_summary(
-               req_obj.get_base_url(), text)
+                req_obj.get_base_url(), text)
             on_pg_sum.index_on_page_summary(text, queue[0])
         except requests.RequestException as trace:
             print str(trace) + '\n'
@@ -113,6 +113,8 @@ def database_setup():
             {"_id": word + "_cur_a", "posting": []})
         db.on_page_summary.insert(
             {"_id": word + "_a", "posting": []})
+        db.on_page_summary.insert(
+            {"_id": word + "_page", "posting": []})
         col1.insert({"_id": word, "df": 0, "postings": []})
         col2.insert({"_id": word, "df": 0, "postings": []})
     client.close()
@@ -123,4 +125,4 @@ if __name__ == '__main__':
     sum_obj = summarizer()
     sum_obj2 = summary_generator()
     on_pg_sum = on_page_summarizer()
-    bfs_level('https://www.stanford.edu', 4)
+    bfs_level('https://www.stanford.edu', 6)

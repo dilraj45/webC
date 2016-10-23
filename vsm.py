@@ -67,8 +67,8 @@ class Vector_Space_Model:
         m = math.log(float(self.total_docs + 1) / df, 10)
         s = s * m
         for x in postings:
-            t = s * 3 * x[1]
-            t = s / (2 + x[1])
+            t = s * 50 * x[1]
+            t = s / (49 + x[1])
             self.rank_pg[x[0]] = self.rank_pg[x[0]] + t
 
     def fetch_rank_on_page_features(self):

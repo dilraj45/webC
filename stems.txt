@@ -56,3 +56,4 @@ dir
 @
 event
 news
+associ
