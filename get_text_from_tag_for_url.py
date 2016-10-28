@@ -1,14 +1,22 @@
 # this module is for finding the ktml text for a given url
 # here in this text of individua ltags can found
 
-import bs4
+from sumy.parsers.html import HtmlParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+from sumy.nlp.stemmers import Stemmer
+from sumy.utils import get_stop_words
 import re
+import bs4
 
 
 class get_individual_tags_text:
 
-    def __init__(self, src_content):
-        self.soup = bs4.BeautifulSoup(src_content, 'lxml')
+    def __init__(self, src_content, url):
+        self.src_content = src_content
+        self.soup = bs4.BeautifulSoup(self.src_content, 'lxml')
+        self.LANGUAGE = "english"
+        self.base_url = url
 
     def get_title_text(self):
         text = ""
@@ -58,7 +66,7 @@ class get_individual_tags_text:
         if self.soup is None:
             return ""
         try:
-            for tag in self.soup.find_all('a'):
+            for tag in self.soup.find_all('a', href=True):
                 text = text + " " + tag['href']
         except AttributeError as e:
             print e
@@ -96,3 +104,17 @@ class get_individual_tags_text:
         text = re.sub(r'[^a-zA-Z0-9@ ]', ' ', text.encode('utf -8'))
         # print text
         return text
+
+    def get_page_summary(self):
+        parser = HtmlParser(
+            self.src_content, Tokenizer(self.LANGUAGE), self.base_url)
+        stemmer = Stemmer(self.LANGUAGE)
+        summarizer = Summarizer(stemmer)
+        summarizer.stop_words = get_stop_words(self.LANGUAGE)
+        summary = ""
+        try:
+            for sentence in summarizer(parser.document, 10):
+                summary = summary + " " + str(sentence)
+            return summary
+        except Exception:
+            return ""
