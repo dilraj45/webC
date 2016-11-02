@@ -42,7 +42,6 @@ class Vector_Space_Model:
             t = s / (50 + x[1])
             self.rank_sum[x[0]] = self.rank_sum[x[0]] + t
 
-    # def fetch_and
     def upload_ranks_db(self):
         self.col.insert({"_id": "ranks",
                          "ranks": self.rank_sum})
@@ -75,32 +74,29 @@ class Vector_Space_Model:
         for pair in self.fp:
             keyword = pair.split(',')[0]
             tw = float(pair.split(',')[1])
-            doc = self.col1.find_one({'_id': keyword + "_title"})
-            df = len(doc['posting'])
-            self.rank_on_page(tw, df, doc['posting'])
-            doc = self.col1.find_one({'_id': keyword + "_header"})
-            df = len(doc['posting'])
-            self.rank_on_page(tw, df, doc['posting'])
-            doc = self.col1.find_one({'_id': keyword + "_meta"})
-            df = len(doc['posting'])
-            self.rank_on_page(tw, df, doc['posting'])
-            doc = self.col1.find_one({'_id': keyword + "_cur_a"})
-            df = len(doc['posting'])
-            self.rank_on_page(tw, df, doc['posting'])
-            doc = self.col1.find_one({'_id': keyword + "_a"})
-            df = len(doc['posting'])
-            self.rank_on_page(tw, df, doc['posting'])
+            # doc = self.col1.find_one({'_id': keyword + "_title"})
+            # df = len(doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
+            # doc = self.col1.find_one({'_id': keyword + "_header"})
+            # df = len(doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
+            # doc = self.col1.find_one({'_id': keyword + "_meta"})
+            # df = len(doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
+            # doc = self.col1.find_one({'_id': keyword + "_cur_a"})
+            # df = len(doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
             # doc = self.col1.find_one({'_id': keyword + "_table"})
             # df = len(doc['posting'])
             # self.rank_on_page(df, doc['posting'])
             doc = self.col1.find_one({"_id": keyword + "_page"})
             df = len(doc['posting'])
             self.rank_on_page(tw, df, doc['posting'])
-            doc = self.col1.find_one({'_id': keyword + "_html"})
-            df = len(doc['posting'])
-            self.rank_on_page(tw, df, doc['posting'])
+            # doc = self.col1.find_one({'_id': keyword + "_html"})
+            # df = len(doc['posting'])
+            # self.rank_on_page(tw, df, doc['posting'])
 
-        # sorting the ranks
         # normalizing ranks
         mx_key = max(self.rank_pg.iteritems(), key=operator.itemgetter(1))[0]
         mx = self.rank_pg[mx_key]
@@ -111,7 +107,6 @@ class Vector_Space_Model:
         for key in self.rank_sum:
             self.final_rank[key] = 0.1 * \
                 self.rank_sum[key] + 0.9 * self.rank_pg[key]
-        # sorting
         sorted_list = sorted(
             self.final_rank.items(), key=operator.itemgetter(1), reverse=True)
         for t in sorted_list:
