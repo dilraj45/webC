@@ -5,7 +5,7 @@
    are accessing, (this can be used to check any redirection) which can
    accessed by calling get_base_url or get_base_hostname method. This
    module handles exceptions thrown by request module and comes with
-   stand by support mechanisim in case of network failure"""
+   stand by support mechanism in case of network failure"""
 
 from urlparse import urlparse
 import requests
@@ -14,8 +14,7 @@ from retrying import retry
 import eventlet
 
 
-class getSource:
-
+class GetSource:
     def __init__(self):
         self.base_url = None
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -27,11 +26,12 @@ class getSource:
     def get_base_hostname(self):
         return urlparse(self.base_url).hostname
 
-    def set_header(self):
+    @staticmethod
+    def set_header():
         hdr = {'User-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0)'
-               ' Gecko/20100101 Firefox/21.0',
-               'Accept':  'text/html,application/xhtml+xml,application/xml;'
-               'q=0.9,*/*;q=0.8',
+                             ' Gecko/20100101 Firefox/21.0',
+               'Accept': 'text/html,application/xhtml+xml,application/xml;'
+                         'q=0.9,*/*;q=0.8',
                'Accept-Charset': 'ISO-8859-1, utf-8; q=0.7,*; q=0.3',
                'Accept-Encoding': 'gzip, deflate',
                'Accept-Language': 'en-US,en;q=0.8'}
@@ -45,46 +45,50 @@ class getSource:
             test.raise_for_status()
         print "\nResuming\n"
         return
+
     # retry if HTTP error or connection error occurs
     # delay between consecutive retries is between 5 to 10 seconds
 
     @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_text(self, url):
-        hdr = self.set_header()
-        htmlfile = None
+        hdr = GetSource.set_header()
+        html_file = None
         try:
             with eventlet.Timeout(10, False):
-                htmlfile = requests.get(url, headers=hdr, verify=False)
-            if htmlfile is None:
+                html_file = requests.get(url, headers=hdr, verify=False)
+            if html_file is None:
                 raise requests.RequestException()
-            self.base_url = htmlfile.url
-            htmlfile.raise_for_status()
+            self.base_url = html_file.url
+            html_file.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
             # openSSL can be used to bypass the SSL layer
             print "SSLError exception caught"
             return None
+        except AttributeError:
+            pass
         except requests.exceptions.ConnectionError:
             # checking for bad connection
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
             raise
-        if htmlfile is not None:
-            return htmlfile.text
+        if html_file is not None:
+            return html_file.text
         else:
             return None
 
     @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_binary_response(self, url):
-        hdr = self.set_header()
+        hdr = GetSource.set_header()
+        html_file = None
         try:
-            htmlfile = None
+            html_file = None
             with eventlet.Timeout(10, False):
-                htmlfile = requests.get(url, headers=hdr, verify=False)
-            self.base_url = htmlfile.url
-            htmlfile.raise_for_status()
+                html_file = requests.get(url, headers=hdr, verify=False)
+            self.base_url = html_file.url
+            html_file.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
             # openSSL can be used to deal with SSL Error
@@ -93,20 +97,21 @@ class getSource:
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
             raise
-        return htmlfile.content
+        return html_file.content
 
     @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_text_with_params(self, url, payload):
         # this method send requests with parameters in query to particular URL
         # payloads is a dictionary comprising of key value pair
-        hdr = self.set_header()
+        html_file = None
+        hdr = GetSource.set_header()
         try:
             with eventlet.Timeout(10, False):
-                htmlfile = requests.get(
+                html_file = requests.get(
                     url, headers=hdr, params=payload, verify=False)
-            self.base_url = htmlfile.url
-            htmlfile.raise_for_status()
+            self.base_url = html_file.url
+            html_file.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
             print "SSLError exception caught"
@@ -114,18 +119,19 @@ class getSource:
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
             raise
-        return htmlfile.text
+        return html_file.text
 
     @retry(stop_max_attempt_number=5, wait_random_min=2000,
            wait_random_max=10000)
     def get_html_binary_with_params(self, url, payload):
-        hdr = self.set_header()
+        html_file = None
+        hdr = GetSource.set_header()
         try:
             with eventlet.Timeout(10, False):
-                htmlfile = requests.get(
+                html_file = requests.get(
                     url, headers=hdr, params=payload, verify=False)
-            self.base_url = htmlfile.url
-            htmlfile.raise_for_status()
+            self.base_url = html_file.url
+            html_file.raise_for_status()
         except requests.exceptions.SSLError:
             # check for https
             print "SSLError exception caught"
@@ -133,4 +139,4 @@ class getSource:
             print "No Internet Connection!\nWaiting for connection"
             self.wait_for_connection()
             raise
-        return htmlfile.content
+        return html_file.content

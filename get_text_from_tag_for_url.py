@@ -1,5 +1,5 @@
-# this module is for finding the ktml text for a given url
-# here in this text of individua ltags can found
+# this module is for finding the html text for a given url
+# here in this text of individual tags can found
 
 from sumy.parsers.html import HtmlParser
 from sumy.nlp.tokenizers import Tokenizer
@@ -10,7 +10,7 @@ import re
 import bs4
 
 
-class get_individual_tags_text:
+class GetIndividualTagsText:
 
     def __init__(self, src_content, url):
         self.src_content = src_content

@@ -6,7 +6,7 @@ from urlparse import urljoin
 import requests
 
 
-class summarizer:
+class Summarizer:
 
     def __init__(self):
         # establishing connection with the mongodb database
@@ -33,7 +33,7 @@ class summarizer:
             # checking if document id is already present in the posting of word
             for term in l:
                 if term[0] == self.cur_id:
-                    term[1] = term[1] + tf
+                    term[1] += tf
                     self.col.update({"_id": word},
                                     {"df": len(l),
                                      "postings": l})
@@ -41,7 +41,7 @@ class summarizer:
         # adding the new value at correct position in the list
         index = 0
         while index < len(l) and tf <= l[index][1]:
-            index = index + 1
+            index += 1
         l.insert(index, [self.cur_id, tf])
         # updating the list in database
         self.col.update({"_id": word},
@@ -73,7 +73,7 @@ class summarizer:
             if word not in self.keyword_list:
                 continue
             if word in keys_dic:
-                keys_dic[word] = keys_dic[word] + 1
+                keys_dic[word] += 1
             else:
                 keys_dic[word] = 1
         # converting the dictionary to key, value pairs stored in a list
@@ -177,10 +177,9 @@ class summarizer:
             if title_string is not None and title_string != "":
                 summary = summary + " " + title_string
             self.index_summary(temp_url, summary)
-            summary = ""
 
 
 if __name__ == '__main__':
-    htmlfile = requests.get('http://stanford.edu')
-    obj = summarizer()
-    obj.create_and_index_summary('http://stanford.edu', htmlfile.text)
+    html_file = requests.get('http://stanford.edu')
+    obj = Summarizer()
+    obj.create_and_index_summary('http://stanford.edu', html_file.text)

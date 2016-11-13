@@ -1,17 +1,16 @@
 """Web Crawler"""
 from urlparse import urljoin
-from urlparse import urlparse
 import re
-from sets import Set
 import bs4
-from getSource import getSource
-from summarizer import summarizer
-from indexer_on_page import on_page_summarizer
+from getSource import GetSource
+from summarizer import Summarizer
+from indexer_on_page import OnPageSummarizer
 from summarizer2 import summary_generator
 from pymongo import MongoClient
 import requests
 
-visited = Set()
+
+visited = set()
 queue = list()
 regex = r'^https?://([^.]*\.)?[^.]*\.stanford\.edu[^.]*'
 pattern = re.compile(regex, re.UNICODE)
@@ -42,7 +41,7 @@ def add_links_to_queue(ht_text, url):
                 if link not in visited:
                     if check_link(link):
                         queue.append(link)
-                        result_file.write((link).encode('utf-8') + '\n')
+                        result_file.write(link.encode('utf-8') + '\n')
                         visited.add(link)
     except (requests.RequestException, requests.exceptions.SSLError) as trace:
         print str(trace) + '\n'
@@ -74,7 +73,7 @@ def bfs(level):
             er_file.write(queue[0] + '\n')
             er_file.write(str(trace) + '\n\n')
         queue.pop(0)
-        i = i + 1
+        i += 1
     bfs(level - 1)
 
 
@@ -118,11 +117,13 @@ def database_setup():
         col1.insert({"_id": word, "df": 0, "postings": []})
         col2.insert({"_id": word, "df": 0, "postings": []})
     client.close()
+
+
 if __name__ == '__main__':
     # Creating an object of class getSource
     database_setup()
-    req_obj = getSource()
-    sum_obj = summarizer()
+    req_obj = GetSource()
+    sum_obj = Summarizer()
     sum_obj2 = summary_generator()
-    on_pg_sum = on_page_summarizer()
+    on_pg_sum = OnPageSummarizer()
     bfs_level('https://www.stanford.edu', 6)

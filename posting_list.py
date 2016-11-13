@@ -1,4 +1,4 @@
-from getSource import getSource
+from getSource import GetSource
 from bs4 import BeautifulSoup
 
 # html_text=get_html_text(base)
@@ -39,7 +39,7 @@ def recursiveChildren(x):
 
 if __name__ == "__main__":
 
-    obj = getSource()
+    obj = GetSource()
     result_file = open('result.txt', 'w')
     # root="http://www.imperial.ac.uk/bio-inspired-technology/people/research-assistants-and-phd-students/"
     # base = u"http://web.mit.edu/physics/people/faculty/index.html"

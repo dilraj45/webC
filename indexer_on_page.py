@@ -8,12 +8,12 @@
 
 from pymongo import MongoClient
 from stemming.porter2 import stem
-from get_text_from_tag_for_url import get_individual_tags_text
+from get_text_from_tag_for_url import GetIndividualTagsText
 from get_text_from_html_tag import get_html_tag_text
 import re
 
 
-class on_page_summarizer:
+class OnPageSummarizer:
 
     def __init__(self):
         # for connection establishing
@@ -44,7 +44,7 @@ class on_page_summarizer:
         for word in word_stems:
             if word in self.fp:
                 if word in key_dic:
-                    key_dic[word] = key_dic[word] + 1
+                    key_dic[word] += 1
                 else:
                     key_dic[word] = 1
         return key_dic
@@ -53,7 +53,7 @@ class on_page_summarizer:
     def add_to_db_posting(self, keyword, count, tag):
         doc = self.db1.on_page_summary.find_one({"_id": keyword + "_" + tag})
         posting_list = doc['posting']
-        # adding the new value at coorect position in the list
+        # adding the new value at correct position in the list
         posting_list.append([self.id_of_url, count])
         # updating the list in database
         self.db1.on_page_summary.update(
@@ -64,7 +64,7 @@ class on_page_summarizer:
     def for_title(self):
 
         title_text = self.get_obj.get_title_text()
-        # convering the dictionary to key, value pairs stored in a list
+        # converting the dictionary to key, value pairs stored in a list
         key_dic = {}
         key_dic = self.get_dict_words(title_text)
         for word in key_dic:
@@ -74,7 +74,7 @@ class on_page_summarizer:
         meta_text = self.get_obj.get_meta_text()
         key_dic = {}
         key_dic = self.get_dict_words(meta_text)
-        # convering the dictionary to key, value pairs stored in a list
+        # converting the dictionary to key, value pairs stored in a list
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "meta")
 
@@ -87,20 +87,17 @@ class on_page_summarizer:
 
     def for_table(self):
         table_text = self.get_obj.get_table_text()
-        key_dic = {}
         key_dic = self.get_dict_words(table_text)
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "table")
 
     def for_html(self):
         html_text = self.get_html_text_obj.get_html_text()
-        key_dic = {}
         key_dic = self.get_dict_words(html_text)
         for word in key_dic:
             self.add_to_db_posting(word, key_dic[word], "html")
 
     def cur_anchor(self, url):
-        key_dic = {}
         # Removing symbols from url
         cur_text = re.sub(r'[^a-zA-Z]', r' ', url)
         key_dic = self.get_dict_words(cur_text)
@@ -128,7 +125,7 @@ class on_page_summarizer:
 
     def index_on_page_summary(self, src_content, url):
         self.fetch_updated_list()
-        self.get_obj = get_individual_tags_text(src_content, url)
+        self.get_obj = GetIndividualTagsText(src_content, url)
         self.get_html_text_obj = get_html_tag_text(src_content)
         url = re.sub(r'\.', r';', url.encode('utf-8'))
         try:
