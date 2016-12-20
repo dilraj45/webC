@@ -101,7 +101,7 @@ class Summarizer:
         for anchor_tag in soup.find_all('a', href=True):
 
             # filtering the out of domain urls
-            regex = r'^https?://([^.]*\.)?[^.]*\.stanford\.edu[^.]*'
+            regex = r'^https?://([^.]*\.)?[^.]*\.pec\.ac[^.]*'
             pattern = re.compile(regex, re.UNICODE)
             temp_url = urljoin(base_url, anchor_tag['href'])
             if re.match(pattern, temp_url.encode('utf-8')) is None:
@@ -180,6 +180,6 @@ class Summarizer:
 
 
 if __name__ == '__main__':
-    html_file = requests.get('http://stanford.edu')
+    html_file = requests.get('http://pec.ac.in')
     obj = Summarizer()
-    obj.create_and_index_summary('http://stanford.edu', html_file.text)
+    obj.create_and_index_summary('http://pec.ac.in', html_file.text)
